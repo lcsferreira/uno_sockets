@@ -12,7 +12,6 @@ class Game:
         self.previous_player = 4
 
     def play(self):
-
         while not self.check_winning():
             next_player = self.get_next_player()
             if next_player == 1:
@@ -23,7 +22,6 @@ class Game:
                 self.player3_play()
             elif next_player == 4:
                 self.player4_play()
-
 
     def check_winning(self):
         if len(self.player1.cards) == 0:
