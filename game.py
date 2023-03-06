@@ -1,8 +1,10 @@
 from player import Player
+from client import Client
 from helpers import clear
 
 class Game:
     def __init__(self, player1: Player, player2: Player, player3: Player, player4: Player):
+        self.net = Client()
         self.player1 = player1
         self.player2 = player2
         self.player3 = player3
@@ -10,17 +12,33 @@ class Game:
         self.previous_card = None
         self.turn = "clockwise" # can be clockwise (1, 2, 3, 4) or counterclockwise (4, 3, 2, 1)
         self.previous_player = 4
+        
+    def updatePlayer(self, player):
+        # PLAYER | HAND | PREVIOUS_CARD | TURN | PREVIOUS_PLAYER
+        reply = self.send_data(player)
+        print(reply)
 
+    def send_data(self, player):
+        data = (str(player.name)+ "," +str(player.cards)+ "," +str(self.previous_card)+ "," +str(self.previous_player)+ "," +str(self.turn))
+        
+        reply = self.net.send(data)
+        print(reply)
+        return reply
+    
     def play(self):
         while not self.check_winning():
             next_player = self.get_next_player()
             if next_player == 1:
+                self.updatePlayer(self.player1)
                 self.player1_play()
             elif next_player == 2:
+                self.updatePlayer(self.player2)
                 self.player2_play()
             elif next_player == 3:
+                self.updatePlayer(self.player3)
                 self.player3_play()
             elif next_player == 4:
+                self.updatePlayer(self.player4)
                 self.player4_play()
 
     def check_winning(self):

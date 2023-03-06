@@ -8,7 +8,6 @@ class Player:
         self.cards = cards
         self.deck = create_all_cards()
 
-
     def print_cards(self):
         for card in self.cards:
             print(colored(card.get_card_text(), card.color))
