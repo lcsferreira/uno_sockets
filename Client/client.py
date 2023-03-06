@@ -1,7 +1,7 @@
 from socket import *
 
 host = gethostname()
-port = 55551
+port = 55552
 
 cli = socket(AF_INET, SOCK_STREAM)
 cli.connect((host, port))
