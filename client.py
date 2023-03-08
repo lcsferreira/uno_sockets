@@ -1,4 +1,5 @@
 #TO-DO 
+# - Implementar o quit game (Olhar como ele fazia no projeto pela interface gráfica)
 # - Modificar as mensagens que o cliente envia para o servidor (Olhar como ele fazia no projeto pela interface gráfica)
 # - Implementar o envio dessas mensagens com o terminal (Com isso, o jogo fica funcional)
 # - Mudar os nomes das cartas para ficar melhor no temrinal
