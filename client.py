@@ -1,46 +1,189 @@
-# from socket import *
+#TO-DO 
+# - Modificar as mensagens que o cliente envia para o servidor (Olhar como ele fazia no projeto pela interface gráfica)
+# - Implementar o envio dessas mensagens com o terminal (Com isso, o jogo fica funcional)
+# - Mudar os nomes das cartas para ficar melhor no temrinal
+# - Printar no cliente somente o necessário (Não printar o que o servidor já printa)
 
-# host = gethostname()
-# port = 55552
 
-# cli = socket(AF_INET, SOCK_STREAM)
-# cli.connect((host, port))
-
-# while 1:
-#     msg = input("Enter message: ")
-#     cli.send(msg.encode())
-
-import socket
+from socket import *
+import threading
 import sys
+import time
+import json
+from termcolor import colored
+
+if len(sys.argv) > 1:
+    SERVER_IP = sys.argv[1]
+    SERVER_PORT = int(sys.argv[2])
+else:
+    SERVER_IP = '127.0.0.1'
+    SERVER_PORT = 8888
 
 
-class Client:
-    CLIENT_IP = '127.0.0.1'
-    CLIENT_PORT = 5556
-    
-    def __init__(self):
-        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.host = self.CLIENT_IP
-        self.port = self.CLIENT_PORT
-        self. addr = (self.host, self.port)
-        self.id = self.connect()
-        
-    def connect(self):
-        print(self.addr)
-        self.client.connect(self.addr)
-        
-        return self.client.recv(2048).decode()
+# CONSTANTS
+MESSAGE = 'INIT'
+NEW_MESSAGE = False
+PLAYER_ID = None
+PLAYER_TURN = None
+PLAYERS_NUM = None
+P_NUM_CARDS = None
+LAST_DISCARD = None
+PLAYER_HAND = []
+DRAW_SUM = 0
+ERR = None
+MAX_PLAYERS = 2
 
-    def client(self):
-        return self.client
 
-    def getID(self):
-        return self.id
+# PROTOCOL
+def update_consts(res):
+    # update antigo
+    '''print(res)
+    res2 = res.split('/')
+    print(res2)
+    res3 = [x.split(' ', 1)[1] for x in res2]
+    global PLAYER_ID, PLAYER_TURN, PLAYER_HAND, LAST_DISCARD, PLAYERS_NUM, P_NUM_CARDS
+    PLAYER_ID, PLAYER_TURN, PLAYER_HAND, LAST_DISCARD, PLAYERS_NUM, P_NUM_CARDS = res3
+    eval(PLAYER_ID)
+    eval(PLAYER_TURN)
+    eval(PLAYER_HAND)
+    #eval(LAST_DISCARD)
+    eval(PLAYERS_NUM)
+    eval(P_NUM_CARDS)'''
+    # update novo
+    global PLAYER_ID, PLAYER_TURN, PLAYER_HAND, LAST_DISCARD, PLAYERS_NUM, P_NUM_CARDS,DRAW_SUM, MAX_PLAYERS
+    res_dict = json.loads(res)
+    if 'ID' in res_dict:
+        PLAYER_ID = res_dict.get('ID')
+    if 'HAND' in res_dict:
+        PLAYER_HAND = res_dict.get('HAND')
+    if 'LAST' in res_dict:
+        LAST_DISCARD = res_dict.get('LAST')
+    PLAYER_TURN = res_dict.get('TURN')
+    PLAYERS_NUM = res_dict.get('PNUM')
+    P_NUM_CARDS = res_dict.get('PNUMC')
+    DRAW_SUM = res_dict.get('DRS')
+    MAX_PLAYERS = res_dict.get('MAX')
 
-    def send(self, data):
-        try:
-            self.client.send(str.encode(data))
-            reply = self.client.recv(2048).decode()
-            return reply
-        except socket.error as e:
-            return print(str(e))
+
+def server_output(client_socket):
+    while 1:
+        att = client_socket.recv(1500)
+        att = att.decode()
+        print(f'Server response: {att}')
+        if len(att) > 0:
+            if '}{' in att:
+                att2 = att.split('}{')
+            update_consts(att)
+
+
+def client_input(client_socket):
+    global NEW_MESSAGE, MESSAGE
+    while 1:
+        if NEW_MESSAGE:
+            print(MESSAGE)
+            client_socket.send(MESSAGE.encode())
+            NEW_MESSAGE = False
+            time.sleep(0.1)
+
+
+def req(card, skip=False):
+    global NEW_MESSAGE, MESSAGE
+    if skip:
+        MESSAGE = f'SKIP: 1, BUY: 0, PUT: 0 0 0'
+    elif card.number == 666 or card.color == 'deck':
+        MESSAGE = f'SKIP: 0, BUY: 1, PUT: 0 0 0'
+    elif card.number is not None:
+        MESSAGE = f'SKIP: 0, BUY: 0, PUT: {colored(card.number, card.color)} 0'
+    elif card.wild is not None:
+        MESSAGE = f'SKIP: 0, BUY: 0, PUT: {card.color} 0 {card.wild}'
+    NEW_MESSAGE = True
+
+
+def client():
+    server_name = SERVER_IP
+    server_port = SERVER_PORT
+
+    client_socket = socket(AF_INET, SOCK_STREAM)
+    client_socket.connect((server_name, server_port))
+
+    server_output_thread = threading.Thread(target=server_output, args=(client_socket, ))
+    server_output_thread.start()
+
+    client_input_thread = threading.Thread(target=client_input, args=(client_socket, ))
+    client_input_thread.start()
+
+def draw():
+    global NEW_MESSAGE, MESSAGE
+    MESSAGE = f'DRAW'
+    NEW_MESSAGE = True
+
+def skip():
+    global NEW_MESSAGE, MESSAGE
+    MESSAGE = f'SKIP'
+    NEW_MESSAGE = True
+
+def buy():
+    global NEW_MESSAGE, MESSAGE
+    MESSAGE = f'BUY'
+    NEW_MESSAGE = True
+
+def put(card):
+    global NEW_MESSAGE, MESSAGE
+    MESSAGE = f'PUT {card.color} {card.number} {card.wild}'
+    NEW_MESSAGE = True
+
+def uno():
+    global NEW_MESSAGE, MESSAGE
+    MESSAGE = f'UNO'
+    NEW_MESSAGE = True
+
+def quit():
+    sys.exit()
+
+def play():
+    msg = input()
+    if msg == 'draw':
+        draw()
+    elif msg == 'skip':
+        skip()
+    elif msg == 'buy':
+        buy()
+    elif msg == 'put':
+        put()
+    elif msg == 'uno':
+        uno()
+    elif msg == 'quit':
+        quit()
+
+def game():
+    run = True
+    while run:
+        print(f'Player {PLAYER_ID}')
+        print(f'Player {PLAYER_TURN} turn')
+        print(f'Players: {PLAYERS_NUM}')
+        print(f'Cards: {P_NUM_CARDS}')
+        print(f'Last discard: {LAST_DISCARD}')
+        print(f'Draw sum: {DRAW_SUM}')
+        print(f'Player hand ', end=' -> ')
+        for card in PLAYER_HAND:
+            card_splitted = (card.split(' ', 1))
+            print(colored(card_splitted[1], card_splitted[0]), '|', end=' ') 
+        print()
+        play()
+
+def menu():
+    global PLAYERS_NUM, MAX_PLAYERS
+    run = True
+    while run:
+        print(f'Waiting players...')
+        print(f'({PLAYERS_NUM}/{MAX_PLAYERS})')
+        time.sleep(5)
+        if PLAYERS_NUM == MAX_PLAYERS:
+            run = False
+            print('Starting game...')
+            time.sleep(1)
+            game()
+
+client()
+time.sleep(0.5)
+menu()
