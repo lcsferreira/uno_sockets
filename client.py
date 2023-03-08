@@ -16,7 +16,8 @@ import sys
 
 class Client:
     CLIENT_IP = '127.0.0.1'
-    CLIENT_PORT = 5555
+    CLIENT_PORT = 5556
+    
     def __init__(self):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.host = self.CLIENT_IP
