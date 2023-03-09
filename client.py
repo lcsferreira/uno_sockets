@@ -113,15 +113,13 @@ def client_program():
         if(format_data[2] == "sucess"):
           print("Card was put sucessfully")
           card_remove = Card(card_to_put.split(" ")[0], card_to_put.split(" ")[1])
+          #iterates to find the card in the player hand and remove it
           for c in player_hand[:]:
-            print("carta mao: ", c.number, c.color)
-            print("carta a remover: ", card_remove.number, card_remove.color)
-            if c.number == card_remove.number and c.color == card_remove.color:
-              print("Card removed")
+            if str(c.number) == str(card_remove.number) and c.color == card_remove.color:
               player_hand.remove(c)
               break
-            else:
-              print("Card not removed")
+          #print the new hand
+          print("Your hand is: ")
           print_deck(player_hand)
         else:
           print("Card don`t match the table card")
