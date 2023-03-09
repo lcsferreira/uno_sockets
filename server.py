@@ -96,7 +96,7 @@ def server_client(connection_socket, ID):
             continue
 
         # Byte -> String
-        sentence = sentence.decode()
+        sentence = sentence.decode() #aqui é o que chega do cliente, para o servidor
         if len(sentence.split(',')) < 3 or len(sentence.split(',')) > 3:
             continue
 
