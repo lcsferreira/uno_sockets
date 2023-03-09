@@ -16,7 +16,7 @@ if len(sys.argv) > 1:
 else:
     MAX_PLAYERS = 2
     server_ip = '127.0.0.1'
-    server_port = 8888
+    server_port = 5555
 
 # Global current move
 current_move = None

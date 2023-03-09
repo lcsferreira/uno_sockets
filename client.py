@@ -1,11 +1,3 @@
-#TO-DO 
-# - Implementar o quit game (Olhar como ele fazia no projeto pela interface gráfica)
-# - Modificar as mensagens que o cliente envia para o servidor (Olhar como ele fazia no projeto pela interface gráfica)
-# - Implementar o envio dessas mensagens com o terminal (Com isso, o jogo fica funcional)
-# - Mudar os nomes das cartas para ficar melhor no temrinal
-# - Printar no cliente somente o necessário (Não printar o que o servidor já printa)
-
-
 from socket import *
 import threading
 import sys
@@ -18,7 +10,7 @@ if len(sys.argv) > 1:
     SERVER_PORT = int(sys.argv[2])
 else:
     SERVER_IP = '127.0.0.1'
-    SERVER_PORT = 8888
+    SERVER_PORT = 5555
 
 
 # CONSTANTS
@@ -70,7 +62,7 @@ def server_output(client_socket):
     while 1:
         att = client_socket.recv(1500)
         att = att.decode()
-        print(f'Server response: {att}')
+        # print(f'Server response: {att}')
         if len(att) > 0:
             if '}{' in att:
                 att2 = att.split('}{')
@@ -159,29 +151,40 @@ def play():
 def game():
     run = True
     while run:
-        print(f'Player {PLAYER_ID}')
-        print(f'Player {PLAYER_TURN} turn')
-        print(f'Players: {PLAYERS_NUM}')
-        print(f'Cards: {P_NUM_CARDS}')
-        print(f'Last discard: {LAST_DISCARD}')
-        print(f'Draw sum: {DRAW_SUM}')
-        print(f'Player hand ', end=' -> ')
+        print(f'Você é o jogador {PLAYER_ID} | É a vez do jogador: {PLAYER_TURN}')
+        print(f'Quantidade de cartas nas mãos dos jogadores: {P_NUM_CARDS}')
+        # print(f'Carta na mesa: {LAST_DISCARD}')
+        print(f'Carta na mesa:', end = ' ')
+        card_table = (LAST_DISCARD.split(' ', 1))
+        print(colored(card_table[1], card_table[0]))
+        print(f'Suas cartas', end=' -> ')
+        
+        # print(f'Draw sum: {DRAW_SUM}') #não sei o que é.
+        
         for card in PLAYER_HAND:
             card_splitted = (card.split(' ', 1))
             print(colored(card_splitted[1], card_splitted[0]), '|', end=' ') 
         print()
         play()
 
+def progress_bar():
+    if PLAYERS_NUM != MAX_PLAYERS:
+        print('\r\nProgress: [50%] [#########################_________________________]')
+    else:
+        print('\r\nProgress: [100%] [##################################################]')
+        
+
 def menu():
     global PLAYERS_NUM, MAX_PLAYERS
     run = True
     while run:
-        print(f'Waiting players...')
+        print(f'\nWaiting players...')
+        progress_bar()
         print(f'({PLAYERS_NUM}/{MAX_PLAYERS})')
         time.sleep(5)
         if PLAYERS_NUM == MAX_PLAYERS:
             run = False
-            print('Starting game...')
+            print('\n == Starting game == \n')
             time.sleep(1)
             game()
 
