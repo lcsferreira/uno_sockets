@@ -121,9 +121,29 @@ def client_program():
           #print the new hand
           print("Your hand is: ")
           print_deck(player_hand)
+                  
         else:
-          print("Card don`t match the table card")
-        message = input("Type 'put' to put a card ")  # again take input
+         print("Card don`t match the table card")
+         message = input("Type 'put' to put a card ")  # again take input
+        
+      elif(message == "buy"):
+        print("You don't have a card to play, drawing...")
+        data_to_server = "BUY_CARD" + " | " + str(player_id)
+        client_socket.send(data_to_server.encode())
+        data = client_socket.recv(1024).decode()
+        
+        print('Received from server: ' + data)
+        
+        format_data = data.split(" | ")
+        print(format_data)
+        
+        # if(format_data[2] == "success"):
+        #   print("Card was bought sucessfully")
+        #   player_hand.append(Card(format_data[3].split(" ")[0], format_data[3].split(" ")[1]))
+        #   print("Your hand is: ")
+        #   print_deck(player_hand)
+        
+        
       else:
         client_socket.send(message.encode())  # send message
         data = client_socket.recv(1024).decode()  # receive response

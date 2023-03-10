@@ -30,6 +30,9 @@ class Game:
                 card = Card(color, value)
                 self.deck.append(card)
     
+    def random_card(self):
+        return random.choice(self.deck)
+    
     def reverse_game(self):
        self.is_clockwise = not self.is_clockwise
 
@@ -180,47 +183,50 @@ class Card:
 #       print(data)
 #       self.connection_socket.send(data.encode())
 
-
 def server_program():
-      # get the hostnam
-      game = Game()
-      host = "localhost"
-      port = 5000  # initiate port no above 1024
+    # get the hostnam
+    game = Game()
+    host = "localhost"
+    port = 5000  # initiate port no above 1024
 
-      server_socket = socket.socket()  # get instance
-      # look closely. The bind() function takes tuple as argument
-      server_socket.bind((host, port))  # bind host address and port together
+    server_socket = socket.socket()  # get instance
+    # look closely. The bind() function takes tuple as argument
+    server_socket.bind((host, port))  # bind host address and port together
 
-      # configure how many client the server can listen simultaneously
-      server_socket.listen(2)
-      conn, address = server_socket.accept()  # accept new connection
-      print("Connection from: " + str(address))
+    # configure how many client the server can listen simultaneously
+    server_socket.listen(2)
+    conn, address = server_socket.accept()  # accept new connection
+    print("Connection from: " + str(address))
 
-      while not game.has_winner:
-          # receive data stream. it won't accept data packet greater than 1024 bytes
-          data = conn.recv(1024).decode()
-          if not data:
-              # if data is not received break
-              break
-          print("from connected user: " + str(data))
+    while not game.has_winner:
+        # receive data stream. it won't accept data packet greater than 1024 bytes
+        data = conn.recv(1024).decode()
+        if not data:
+            # if data is not received break
+            break
+        print("from connected user: " + str(data))
           
-          format_data = data.split(" | ")
+        format_data = data.split(" | ")
 
-          if(format_data[0] == "START_GAME"):
+        if(format_data[0] == "START_GAME"):
             game.create_deck()
             game.shuffle_cards()
             game.previous_card = game.deck.pop()
             conn.send(("GAME_STARTED | " + game.previous_card.get_card_str() ).encode())  # send data to the client
-          elif(format_data[0] == "PUT_CARD"):
+        elif(format_data[0] == "PUT_CARD"):
             card = Card(format_data[2].split(" ")[0], format_data[2].split(" ")[1])
+            
             if(game.previous_card.color == card.color or game.previous_card.number == card.number):
                 game.previous_card = card
                 conn.send(("CARD_ATT | " + game.previous_card.get_card_str() + " | sucess").encode())
+                
             else:
                 conn.send(("CARD_ATT | " + game.previous_card.get_card_str() + " | fail").encode())
+        elif(format_data[0] == "BUY_CARD"):
+            game.deck.append(game.random_card)
+            conn.send(("CARD_BUYED | " + game.previous_card.get_card_str() + " | sucess").encode())
 
-      conn.close()  # close the connection
-
+        conn.close()  # close the connection
 
 if __name__ == '__main__':
   server_program()
