@@ -1,5 +1,6 @@
 import random
 import socket
+import threading
 
 
 # server = "127.0.0.1"
@@ -99,15 +100,23 @@ def server_program():
     game = Game()
     host = "localhost"
     port = 5000  # initiate port no above 1024
-
-    server_socket = socket.socket()  # get instance
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # get instance
     # look closely. The bind() function takes tuple as argument
     server_socket.bind((host, port))  # bind host address and port together
 
     # configure how many client the server can listen simultaneously
     server_socket.listen(2)
-    conn, address = server_socket.accept()  # accept new connection
-    print("Connection from: " + str(address))
+    
+    while True:
+        print("Waiting for connection...")
+        conn, address = server_socket.accept()  # accept new connection
+        thread = threading.Thread(target=connect_player(conn, game, address), args=(conn, address, game))
+        thread.start()
+
+def connect_player(conn, game, adress):
+    print("Connection from: " + str(adress))
+    game.players.append(adress[1])
+    print("Players id: " + str(game.players))
 
     while not game.has_winner:
         # receive data stream. it won't accept data packet greater than 1024 bytes
@@ -182,6 +191,13 @@ def server_program():
                 
 
     conn.close()  # close the connection
+
+# def update_client(connection_socket = None):
+#     global sockets_connected
+#     data = ''
+    
+#     if connection_socket != None:
+#         # data =
 
 if __name__ == '__main__':
   server_program()

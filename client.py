@@ -67,7 +67,7 @@ def client_program():
     host = "localhost" # as both code is running on same pc
     port = 5000  # socket server port number
 
-    client_socket = socket.socket()  # instantiate
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # instantiate
     client_socket.connect((host, port))  # connect to the server
     #get the second part of the tuple, which is the port number
     player_id = client_socket.getsockname()[1]
