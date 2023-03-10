@@ -22,10 +22,13 @@ class Game:
         self.players.remove(player)
 
     def create_deck(self):
-        card_values = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+        card_values = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "skip", "reverse", "draw2", "draw4", "wild"]
         card_colors = ["blue", "red", "yellow", "green"]
 
         for value in card_values:
+            if value == "wild" or value == "draw4":
+                card = Card(None, value)
+                continue
             for color in card_colors:
                 card = Card(color, value)
                 self.deck.append(card)
@@ -77,8 +80,112 @@ class Card:
         self.number = value
     
     def get_card_str(self):
+        if self.color == None:
+            return f"{self.number} white"
         return f"{self.number} {self.color}"
-    
+
+def print_deck(deck):
+    for card in deck:
+        card.get_card_str()
+
+def get_cards_stringfied(deck):
+    deck_stringfied:str = ""
+    for card in deck:
+        deck_stringfied += f"{card.number} {card.color}, " 
+    return deck_stringfied
+
+def server_program():
+    # get the hostnam
+    game = Game()
+    host = "localhost"
+    port = 5000  # initiate port no above 1024
+
+    server_socket = socket.socket()  # get instance
+    # look closely. The bind() function takes tuple as argument
+    server_socket.bind((host, port))  # bind host address and port together
+
+    # configure how many client the server can listen simultaneously
+    server_socket.listen(2)
+    conn, address = server_socket.accept()  # accept new connection
+    print("Connection from: " + str(address))
+
+    while not game.has_winner:
+        # receive data stream. it won't accept data packet greater than 1024 bytes
+        data = conn.recv(1024).decode()
+        if not data:
+            # if data is not received break
+            break
+        print("from connected user: " + str(data))
+          
+        format_data = data.split(" | ")
+
+        if(format_data[0] == "START_GAME"):
+            game.create_deck()
+            game.shuffle_cards()
+            game.previous_card = game.deck.pop()
+            conn.send(("GAME_STARTED | " + game.previous_card.get_card_str() ).encode())  # send data to the client
+        elif(format_data[0] == "PUT_CARD"):
+            card = Card(format_data[2].split(" ")[0], format_data[2].split(" ")[1])
+                        
+            if(card.number == "wild"):
+                if(format_data[5] == "blue"):
+                    card.color = "blue"
+                elif (format_data[5] == "red"):
+                    card.color = "red"
+                elif (format_data[5] == "yellow"):
+                    card.color = "yellow"
+                else:
+                    card.color = "green"
+                game.previous_card = card
+                conn.send(("CARD_ATT | " + game.previous_card.get_card_str() + " | sucess").encode())
+            
+            if(game.previous_card.color == card.color or game.previous_card.number == card.number):
+                game.previous_card = card
+                conn.send(("CARD_ATT | " + game.previous_card.get_card_str() + " | sucess").encode())
+                
+            else:
+                conn.send(("CARD_ATT | " + game.previous_card.get_card_str() + " | fail").encode())
+        
+        elif(format_data[0] == "BUY_CARD"):
+            buy_cards = list()
+            new_card = game.random_card()
+            need_buy = True
+
+            while need_buy == True:
+                buy_cards.append(new_card)
+                new_card = game.random_card()
+                if(new_card.color == game.previous_card.color):
+                    need_buy = False
+                elif(new_card.number == game.previous_card.number):
+                    need_buy = False
+                else:
+                    need_buy = True
+            string_deck = get_cards_stringfied(buy_cards)
+            #remove last comma
+            string_deck = string_deck[:-2]
+            conn.send(("CARDS_BUYED | " + format_data[1] + " | " + string_deck + " | success").encode())
+            
+        elif(format_data[0] == "DRAW_CARD"):
+            buy_cards = list()
+            
+            if format_data[3] == "2":
+                for i in range(0, 2):
+                    buy_cards.append(game.random_card())
+                
+            if format_data[3] == "4":
+                for i in range(0, 4):
+                    buy_cards.append(game.random_card())
+                    
+            string_deck = get_cards_stringfied(buy_cards)
+            string_deck = string_deck[:-2]
+            conn.send(("CARDS_BUYED | " + format_data[1] + " | " + string_deck + " | success" + 'PLAYER_NEXT_TURN').encode())
+                
+
+    conn.close()  # close the connection
+
+if __name__ == '__main__':
+  server_program()
+      
 # class Server:
 #     def __init__(self,server, port):
 #       self.game = Game()
@@ -178,78 +285,3 @@ class Card:
 #     def send_data(self, data):
 #       print(data)
 #       self.connection_socket.send(data.encode())
-
-def print_deck(deck):
-    for card in deck:
-        card.get_card_str()
-
-def get_cards_stringfied(deck):
-    deck_stringfied:str = ""
-    for card in deck:
-        deck_stringfied += f"{card.number} {card.color}, " 
-    return deck_stringfied
-
-def server_program():
-    # get the hostnam
-    game = Game()
-    host = "localhost"
-    port = 5000  # initiate port no above 1024
-
-    server_socket = socket.socket()  # get instance
-    # look closely. The bind() function takes tuple as argument
-    server_socket.bind((host, port))  # bind host address and port together
-
-    # configure how many client the server can listen simultaneously
-    server_socket.listen(2)
-    conn, address = server_socket.accept()  # accept new connection
-    print("Connection from: " + str(address))
-
-    while not game.has_winner:
-        # receive data stream. it won't accept data packet greater than 1024 bytes
-        data = conn.recv(1024).decode()
-        if not data:
-            # if data is not received break
-            break
-        print("from connected user: " + str(data))
-          
-        format_data = data.split(" | ")
-
-        if(format_data[0] == "START_GAME"):
-            game.create_deck()
-            game.shuffle_cards()
-            game.previous_card = game.deck.pop()
-            conn.send(("GAME_STARTED | " + game.previous_card.get_card_str() ).encode())  # send data to the client
-        elif(format_data[0] == "PUT_CARD"):
-            card = Card(format_data[2].split(" ")[0], format_data[2].split(" ")[1])
-            
-            if(game.previous_card.color == card.color or game.previous_card.number == card.number):
-                game.previous_card = card
-                conn.send(("CARD_ATT | " + game.previous_card.get_card_str() + " | sucess").encode())
-                
-            else:
-                conn.send(("CARD_ATT | " + game.previous_card.get_card_str() + " | fail").encode())
-        
-        elif(format_data[0] == "BUY_CARD"):
-            buy_cards = list()
-            new_card = game.random_card()
-            need_buy = True
-
-            while need_buy == True:
-                buy_cards.append(new_card)
-                new_card = game.random_card()
-                if(new_card.color == game.previous_card.color):
-                    need_buy = False
-                elif(new_card.number == game.previous_card.number):
-                    need_buy = False
-                else:
-                    need_buy = True
-            string_deck = get_cards_stringfied(buy_cards)
-            #remove last comma
-            string_deck = string_deck[:-2]
-            conn.send(("CARDS_BUYED | " + format_data[1] + " | " + string_deck + " | success").encode())
-
-    conn.close()  # close the connection
-
-if __name__ == '__main__':
-  server_program()
-      

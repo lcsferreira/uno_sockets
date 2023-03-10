@@ -25,6 +25,9 @@ class Card:
         self.number = value
     
     def get_card_str(self):
+      if self.color == None:
+        print(colored(self.number, "white"))
+      else:
         print(colored(self.number, self.color))
     
 def generate_deck():
@@ -108,6 +111,32 @@ def client_program():
         print("Your hand is: ")
         print_deck(player_hand)
         card_to_put = input("Which card do you want to put? ")
+        
+        if card_to_put == "draw2":
+          data_to_server = "DRAW_CARD" + " | " + str(player_id) + " | " + card_to_put + " | " + "2"
+          client_socket.send(data_to_server.encode())
+          data = client_socket.recv(1024).decode()
+          print('Received from server: ' + data)
+          format_data = data.split(" | ")
+          
+        if card_to_put == "draw4":
+          data_to_server = "DRAW_CARD" + " | " + str(player_id) + " | " + card_to_put + " | " + "4"
+          client_socket.send(data_to_server.encode())
+          data = client_socket.recv(1024).decode()
+          print('Received from server: ' + data)
+          format_data = data.split(" | ")
+          
+        if card_to_put == "wild":
+          set_color = input("Set the color: ")
+          if set_color == "red" or set_color == "blue" or set_color == "green" or set_color == "yellow":
+            data_to_server = "PUT_CARD" + " | " + str(player_id) + " | " + card_to_put + " | " + set_color
+            client_socket.send(data_to_server.encode())
+            data = client_socket.recv(1024).decode()
+            print('Received from server: ' + data)
+            format_data = data.split(" | ")
+               
+          
+        
         data_to_server = "PUT_CARD" + " | " + str(player_id) + " | " + card_to_put
         client_socket.send(data_to_server.encode())
         data = client_socket.recv(1024).decode()
