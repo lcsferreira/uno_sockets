@@ -199,8 +199,7 @@ def connect_player(conn, game):
                     
             string_deck = get_cards_stringfied(buy_cards)
             string_deck = string_deck[:-2]
-            conn.send(("CARDS_BUYED | " + format_data[1] + " | " + string_deck + " | success" + 'PLAYER_NEXT_TURN').encode())
-                
+            conn.send(("CARDS_BUYED | " + format_data[1] + " | " + string_deck + " | success" + 'PLAYER_NEXT_TURN').encode())              
 
     conn.close()  # close the connection
 
