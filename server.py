@@ -3,7 +3,6 @@ import socket
 import threading
 import time
 
-
 # server = "127.0.0.1"
 # port = 65432
 # MAX_PLAYERS = 2
@@ -230,8 +229,6 @@ def server_client(connection_socket, player_id, game):
         connect_player(connection_socket, game)
         # message = message.decode()
         # print(f'Client {player_id} sent: {message}')
-    
-    
     
 if __name__ == '__main__':
     _current_move_lock  = threading.Lock()
