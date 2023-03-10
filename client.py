@@ -134,8 +134,6 @@ def client_program():
             data = client_socket.recv(1024).decode()
             print('Received from server: ' + data)
             format_data = data.split(" | ")
-               
-          
         
         data_to_server = "PUT_CARD" + " | " + str(player_id) + " | " + card_to_put
         client_socket.send(data_to_server.encode())
@@ -193,7 +191,6 @@ def client_program():
           print("Type 'buy' to buy cards")
           print("Type 'put' to put a card ")
           message = input(' -> ')  # again take input
-        
         
       else:
         client_socket.send(message.encode())  # send message
