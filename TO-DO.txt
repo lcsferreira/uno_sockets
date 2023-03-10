@@ -9,3 +9,14 @@ TO-DO
 # ARRUMEI O QUE TA SENDO PRINTADO NO INÍCIO DO GAME;
 # PROGRESS BARR PARA OS CLIENTES;
 # LAYOUT NO TERMINAL PARA O CLIENTE REFATORADO, FICOU MELHOR;
+
+
+TO-DO
+- Colocar jogo com dois players
+  - Com isso, vai precisar implementar a lógica dos turnos
+  - IDEIA: quando o servidor manda uma msg ele manda o player id na msg, usar isso como verificação no client se é ele que precisa atualizar suas informações, se não apenas print da previous_card
+
+- Colocar as cartas especiais
+  - draw_two (+2), wild (escolhe a cor), draw_four (+4 e escolhe a cor)
+  - IDEIA: usar como base o código de compra, mas é mais simples. Apenas adiciona duas cartas em forma de string e manda na msg o client recebe e adiciona na sua mão
+

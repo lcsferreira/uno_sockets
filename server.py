@@ -39,10 +39,6 @@ class Game:
     def shuffle_cards(self):
        random.shuffle(self.deck)
 
-    def print_deck(self):
-        for card in self.deck:
-            print(card.get_card_str())
-
     def draw_player_hand(self):
       player_hand = list()
 
@@ -183,6 +179,16 @@ class Card:
 #       print(data)
 #       self.connection_socket.send(data.encode())
 
+def print_deck(deck):
+    for card in deck:
+        card.get_card_str()
+
+def get_cards_stringfied(deck):
+    deck_stringfied:str = ""
+    for card in deck:
+        deck_stringfied += f"{card.number} {card.color}, " 
+    return deck_stringfied
+
 def server_program():
     # get the hostnam
     game = Game()
@@ -222,11 +228,27 @@ def server_program():
                 
             else:
                 conn.send(("CARD_ATT | " + game.previous_card.get_card_str() + " | fail").encode())
+        
         elif(format_data[0] == "BUY_CARD"):
-            game.deck.append(game.random_card)
-            conn.send(("CARD_BUYED | " + game.previous_card.get_card_str() + " | sucess").encode())
+            buy_cards = list()
+            new_card = game.random_card()
+            need_buy = True
 
-        conn.close()  # close the connection
+            while need_buy == True:
+                buy_cards.append(new_card)
+                new_card = game.random_card()
+                if(new_card.color == game.previous_card.color):
+                    need_buy = False
+                elif(new_card.number == game.previous_card.number):
+                    need_buy = False
+                else:
+                    need_buy = True
+            string_deck = get_cards_stringfied(buy_cards)
+            #remove last comma
+            string_deck = string_deck[:-2]
+            conn.send(("CARDS_BUYED | " + format_data[1] + " | " + string_deck + " | success").encode())
+
+    conn.close()  # close the connection
 
 if __name__ == '__main__':
   server_program()

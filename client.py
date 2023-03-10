@@ -99,7 +99,10 @@ def client_program():
           print("Your hand is: ")
           print_deck(player_hand)
 
-        message = input("Type 'put' to put a card ")  # again take input
+        print("Type 'quit' to quit game")
+        print("Type 'buy' to buy cards")
+        print("Type 'put' to put a card ")
+        message = input(' -> ')  # again take input
 
       elif(message == "put"):
         print("Your hand is: ")
@@ -121,10 +124,17 @@ def client_program():
           #print the new hand
           print("Your hand is: ")
           print_deck(player_hand)
-                  
+          print("Type 'quit' to quit game")
+          print("Type 'buy' to buy cards")
+          print("Type 'put' to put a card ")
+          message = input(' -> ')  # again take input
+  
         else:
          print("Card don`t match the table card")
-         message = input("Type 'put' to put a card ")  # again take input
+         print("Type 'quit' to quit game")
+         print("Type 'buy' to buy cards")
+         print("Type 'put' to put a card ")
+         message = input(' -> ')  # again take input  # again take input
         
       elif(message == "buy"):
         print("You don't have a card to play, drawing...")
@@ -137,11 +147,23 @@ def client_program():
         format_data = data.split(" | ")
         print(format_data)
         
-        # if(format_data[2] == "success"):
-        #   print("Card was bought sucessfully")
-        #   player_hand.append(Card(format_data[3].split(" ")[0], format_data[3].split(" ")[1]))
-        #   print("Your hand is: ")
-        #   print_deck(player_hand)
+        if(format_data[3] == "success"):
+          print("Card was bought sucessfully")
+          all_cards = format_data[2].split(", ")
+          for card in all_cards:
+             player_hand.append(Card(card.split(" ")[1], card.split(" ")[0]))
+          print("Your hand is: ")
+          print_deck(player_hand)
+          print("Type 'quit' to quit game")
+          print("Type 'buy' to buy cards")
+          print("Type 'put' to put a card ")
+          message = input(' -> ')  # again take input
+        else:
+          print("Something went wrong!")
+          print("Type 'quit' to quit game")
+          print("Type 'buy' to buy cards")
+          print("Type 'put' to put a card ")
+          message = input(' -> ')  # again take input
         
         
       else:
