@@ -1,11 +1,14 @@
 import random
 import socket
 import threading
+import time
 
 
 # server = "127.0.0.1"
 # port = 65432
 # MAX_PLAYERS = 2
+
+global game_started
 
 class Game:
     def __init__(self):
@@ -15,6 +18,7 @@ class Game:
         self.previous_card = None
         self.is_clockwise = True
         self.has_winner = False
+        self.started = False
     
     def add_player(self, player):
         self.players.append(player)
@@ -96,30 +100,39 @@ def get_cards_stringfied(deck):
     return deck_stringfied
 
 def server_program():
-    # get the hostnam
     game = Game()
     host = "localhost"
-    port = 5000  # initiate port no above 1024
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # get instance
-    # look closely. The bind() function takes tuple as argument
-    server_socket.bind((host, port))  # bind host address and port together
-
-    # configure how many client the server can listen simultaneously
+    port = 5000
+    
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+    server_socket.bind((host, port))
     server_socket.listen(2)
     
-    while True:
-        print("Waiting for connection...")
-        conn, address = server_socket.accept()  # accept new connection
-        thread = threading.Thread(target=connect_player(conn, game, address), args=(conn, address, game))
-        thread.start()
+    sockets_connected = []
+    threads_in_execution = []
+    
+    while (not game.started) and (len(game.players) < 2):
+        if (len(game.players) != 0):
+            _game_started.release()
+        
+        print("Waiting for player, has current ", len(game.players), "players...")
+        
+        conn, address = server_socket.accept()
+        sockets_connected.append(conn)
+        
+        game.players.append(address[1])
+        
+        print("Socket connected: ", address[-1])
+        
+        threads_in_execution.append(threading.Thread(target=server_client, args=(conn, address[1], game)))
+        threads_in_execution[-1].start()
+        time.sleep(0.1)
+        _game_started.acquire()
 
-def connect_player(conn, game, adress):
-    print("Connection from: " + str(adress))
-    game.players.append(adress[1])
-    print("Players id: " + str(game.players))
 
-    while not game.has_winner:
-        # receive data stream. it won't accept data packet greater than 1024 bytes
+def connect_player(conn, game):
+    
+    while game.has_winner == False:
         data = conn.recv(1024).decode()
         if not data:
             # if data is not received break
@@ -192,112 +205,36 @@ def connect_player(conn, game, adress):
 
     conn.close()  # close the connection
 
-# def update_client(connection_socket = None):
-#     global sockets_connected
-#     data = ''
+def server_client(connection_socket, player_id, game):
+    # _game_started.acquire()
+    # while not game.started:
+    #     _game_started.release()
+    #     time.sleep(0.5)
+    #     _game_started.acquire()
+    # _game_started.release()
+
+    while game.started:
+        print(f'Client {player_id} here')
+        print('Thread server_client waiting player ', player_id, ' turn...')
     
-#     if connection_socket != None:
-#         # data =
-
+        try:
+            message = connection_socket.recv(1024)
+        except Exception as msg:
+            print("Caught exception socket.error : %s" % msg)
+            break
+        
+        if message is None:
+            print("No data received")
+            continue
+        
+        connect_player(connection_socket, game)
+        # message = message.decode()
+        # print(f'Client {player_id} sent: {message}')
+    
+    
+    
 if __name__ == '__main__':
-  server_program()
-      
-# class Server:
-#     def __init__(self,server, port):
-#       self.game = Game()
-#       self.server = server
-#       self.port = port
-#       self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#       self.server_socket.bind((self.server, self.port))
-#       self.server_socket.listen(MAX_PLAYERS)
-#       self.sockets_connected = list()
-
-#     def play(self):
-#       self.game.create_deck()
-#       self.game.shuffle_cards()
-
-#       while (len(self.game.players) < MAX_PLAYERS):
-#         print("Waiting for players, has current ", len(self.game.players), ' players...')
-#         client_socket, client_info = self.server_socket.accept()
-#         self.sockets_connected.append(client_socket)
-#         print(client_info[0], client_info[1])
-#         # Adiciona jogadores até o jogo começar
-#         self.game.add_player(Player("Player " + str(len(self.game.players) + 1)))
-#         self.send_hand_player(self.game.players[0])
-
-#         print("Socket connected: ", client_info[-1])
-
-#       print("==== Game started ====")
-
-#       while (not self.game.has_winner):
-#         self.allow_play(self.game.turn_player)
-#         try:
-#             sentence = self.connection_socket.recv(1024)
-#         except Exception as msg:
-#             print("Caught exception: %s" % msg)
-#             break
-#         # No data receiving
-#         if sentence is None:
-#             print('No data receiving')
-#             continue
-
-#         # Byte -> String
-#         sentence = sentence.decode()
-#         self.receive_message(sentence)
-
-#     def receive_message(self, msg):
-#         if msg.type == "PLAY_CARD":
-#           msg.card = self.game.players[msg.player].remove_card(msg.data)
-#           self.game.previous_card = msg.card
-#           self.remove_card_player(msg.player, msg.card)
-#           self.game.next_player()
-#         elif msg.type == "DRAW_CARD":
-#           self.game.players[msg.player].add_card(self.game.deck.pop())
-#           self.add_card_player(msg.player, self.game.deck.pop())
-#           self.game.next_player()
-#         elif msg.type == "CHANGE_CLOCKWISE":
-#           self.change_clockwise()
-#           self.game.next_player()
-#         elif msg.type == "WINNER":
-#           self.game.has_winner = True
-
-#     def change_clockwise(self):
-#       self.game.reverse_game()
-
-#     def send_hand_player(self, player):
-#       player_hand = self.game.draw_player_hand()
-#       msg = {
-#         "type": "SEND_HAND",
-#         "data": player_hand,
-#         "player": player
-#       }
-#       self.send_data(msg)
-
-#     def remove_card_player(self, player, card):
-#       msg = {
-#         "type": "REMOVE_CARD",
-#         "data": card,
-#         "player": player
-#       }
-#       self.send_data(msg)
-
-#     def add_card_player(self, player, card):
-#       msg = {
-#         "type": "ADD_CARD",
-#         "data": card,
-#         "player": player
-#       }
-#       self.send_data(msg)
-
-#     def allow_play(self, player):
-#       msg = {
-#         "type": "ALLOW_PLAY",
-#         "player": player,
-#         "previous_card": self.game.previous_card
-#       }
-#       self.send_data(msg)
-         
-#     #server send message function
-#     def send_data(self, data):
-#       print(data)
-#       self.connection_socket.send(data.encode())
+    _current_move_lock  = threading.Lock()
+    _game_started = threading.Lock()
+    _update_client_lock = threading.Lock()
+    server_program()
