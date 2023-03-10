@@ -8,7 +8,7 @@ import time
 # port = 65432
 # MAX_PLAYERS = 2
 
-global game_started
+# global game_started
 
 class Game:
     def __init__(self):
@@ -97,7 +97,7 @@ def get_cards_stringfied(deck):
     deck_stringfied:str = ""
     for card in deck:
         deck_stringfied += f"{card.number} {card.color}, " 
-    return deck_stringfied
+    return deck_stringfied    
 
 def server_program():
     game = Game()
@@ -128,10 +128,16 @@ def server_program():
         threads_in_execution[-1].start()
         time.sleep(0.1)
         _game_started.acquire()
-
-
-def connect_player(conn, game):
+        
+    _update_client_lock.acquire()
+    game_started = True
+    connect_player(sockets_connected[0], game)
+    # talvez colocar o update client aqui?
+    _game_started.release()
+    _update_client_lock.release()
     
+def connect_player(conn, game):
+
     while game.has_winner == False:
         data = conn.recv(1024).decode()
         if not data:
@@ -186,7 +192,7 @@ def connect_player(conn, game):
             #remove last comma
             string_deck = string_deck[:-2]
             conn.send(("CARDS_BUYED | " + format_data[1] + " | " + string_deck + " | success").encode())
-            
+            #PADRONIZAR O PROTOCOLO
         elif(format_data[0] == "DRAW_CARD"):
             buy_cards = list()
             
@@ -230,8 +236,6 @@ def server_client(connection_socket, player_id, game):
         connect_player(connection_socket, game)
         # message = message.decode()
         # print(f'Client {player_id} sent: {message}')
-    
-    
     
 if __name__ == '__main__':
     _current_move_lock  = threading.Lock()
