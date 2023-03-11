@@ -1,6 +1,7 @@
 import random
 import socket
 import time
+from termcolor import colored
 
 # Configurações do servidor
 HOST = 'localhost'
@@ -67,6 +68,15 @@ class Game:
         
         for player in self.players:
             player.hand = self.draw_player_hand()
+
+    def setup_game(self):
+        self.create_deck()
+        self.shuffle_cards()
+        self.turn_player = random.choice(self.players)
+        
+        self.previous_card = self.random_card()
+        while self.previous_card.color == None:
+            self.previous_card = self.random_card()
         
         self.started = True
         
@@ -79,13 +89,13 @@ class Game:
         data = data.replace('PLAYER_ID', str(self.players[0].name))
         cliente1.sendall(data.encode())
     
-        self.setup_player()
-    
         data = 'HAND | PLAYER_ID |   |   |   |   |   |   | STRING_DECK |  '
         hand = self.get_cards_stringfied(self.players[1].hand)
         data = data.replace('STRING_DECK', hand)
         data = data.replace('PLAYER_ID', str(self.players[1].name))
         cliente2.sendall(data.encode())
+
+        self.started = True
     
     def get_cards_stringfied(self, deck):
         deck_stringfied:str = ""
@@ -117,6 +127,13 @@ class Card:
         if self.color == None:
             return f"{self.number} white"
         return f"{self.number} {self.color}"
+    
+    def print_card(self):
+        print(colored(self.number, self.color))
+
+def format_data(data):
+    data = data.split(' | ')
+    return data
     
 def server():   
     game = Game()
@@ -153,6 +170,17 @@ def server():
     
     game.send_cards(cliente1, cliente2)
 
+    print('Cartas distribuidas, iniciando o jogo...')
+
+    game.setup_game()
+
+    print('Jogo iniciado!')
+
+    print("Carta inicial:")
+    game.previous_card.print_card()
+
+    print("Jogador inicial:", game.turn_player.name)
+
     # Loop infinito para receber e enviar mensagens
     while True:
         # Recebe mensagem do cliente 1
@@ -160,14 +188,14 @@ def server():
         if mensagem1:
             print('Cliente 1:', mensagem1)
             # Envia mensagem para o cliente 2
-            cliente2.sendall(mensagem1.encode())
+            formatted_message = format_data(mensagem1)
 
         # Recebe mensagem do cliente 2
         mensagem2 = cliente2.recv(1024).decode()
         if mensagem2:
             print('Cliente 2:', mensagem2)
             # Envia mensagem para o cliente 1
-            cliente1.sendall(mensagem2.encode())
+            formatted_message = format_data(mensagem1)
             
 if __name__ == '__main__':
     server()

@@ -1,6 +1,8 @@
 import socket
 from termcolor import colored
 
+from server import Card
+
 # Configurações do cliente
 HOST = 'localhost'
 PORT = 7000
@@ -11,17 +13,22 @@ cliente_socket.connect((HOST, PORT))
 
 player_hand = list()
 
+def print_hand(deck):
+    for card in deck:
+        card.print_card()
+
 def format_data(data):
     return data.split(" | ")
 
 def verify_type(data):
-    print('\n\n', data[7], '\n\n')
-    
     if data[0] == 'HAND':
-        player_hand.append(data[8])   
-        
-        print('Sua mão é: ', player_hand)
-        return player_hand
+        #Recebe a mão do servidor
+        string_deck = data[8]
+        string_deck = string_deck[:-2]
+        string_deck = string_deck.split(', ')
+        for card in string_deck:
+            card = card.split(' ')
+            player_hand.append(Card(card[1], card[0]))
    
 # Loop infinito para enviar e receber mensagens
 while True:
@@ -35,9 +42,9 @@ while True:
         # print('Sua mão é: ', algo)        
         
     # Envia mensagem para o servidor
-    mensagem = input('Cliente 2: ')
-    cliente_socket.sendall(mensagem.encode())
+    # mensagem = input('Cliente 2: ')
+    # cliente_socket.sendall(mensagem.encode())
 
     # Recebe resposta do servidor
-    if resposta:
-        print('Servidor:', resposta)
+    # if resposta:
+    #     print('Servidor:', resposta)

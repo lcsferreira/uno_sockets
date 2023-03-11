@@ -1,6 +1,8 @@
 import socket
 from termcolor import colored
 
+from server import Card
+
 # Configurações do cliente
 HOST = 'localhost'
 PORT = 7000
@@ -11,43 +13,41 @@ cliente_socket.connect((HOST, PORT))
 
 player_hand = list()
 
+def menu():
+    print("Type 'put' to put a card")
+    print("Type 'buy' to buy cards")
+    print("Type 'quit' to quit the game")
+    option = input(' -> ')
+    return option
+
+def print_hand(deck):
+    for card in deck:
+        card.print_card()
+
 def format_data(data):
     return data.split(" | ")
 
 def verify_type(data):
-    print('\n\n', data[7], '\n\n')
-    
-    if data[0] == 'GAME_STARTED':
-        print('O jogo começou')
-        player_hand.append(data[8])
-        print('Sua mão é: ', player_hand)
-        
-    
-    elif data[0] == 'HAND':
-        player_hand.append(data[8])   
-        
-        print('Sua mão é: ', player_hand)
-        return player_hand
+    if data[0] == 'HAND':
+        #Recebe a mão do servidor
+        string_deck = data[8]
+        string_deck = string_deck[:-2]
+        string_deck = string_deck.split(', ')
+        for card in string_deck:
+            card = card.split(' ')
+            player_hand.append(Card(card[1], card[0]))
    
 # Loop infinito para enviar e receber mensagens
 while True:
     resposta = cliente_socket.recv(1024).decode()
     
     formated_data = format_data(resposta)
+
+    verify_type(formated_data)
     
-    if formated_data[0] == 'GAME_STARTED':
-        print('O jogo começou')
-        player_hand.append(formated_data[8])
-        print('Sua mão é: ', player_hand)
-    
-    print("Escreva 'buy' para comprar")
-    print("Escreva 'put' para colocar uma carta na mesa")
-    print("Escreva 'quit' para sair")
-    message = input(' -> ')
-    
-    if message == 'buy':
-        print('Você comprou uma carta')
-        data = 'CARD_BUYED |   |   |   |   |   |  SUCESS |  DATA | STRING_DECK | PLAYER_NEXT_TURN '
+    # if message == 'buy':
+    #     print('Você comprou uma carta')
+    #     data = 'CARD_BUYED |   |   |   |   |   |  SUCESS |  DATA | STRING_DECK | PLAYER_NEXT_TURN '
         
     #parei aqui, tentando fazer o buy card!
     
@@ -58,9 +58,9 @@ while True:
         # print('Sua mão é: ', algo)        
         
     # Envia mensagem para o servidor
-    mensagem = input('Cliente 1: ')
-    cliente_socket.sendall(mensagem.encode())
+    # mensagem = input('Cliente 1: ')
+    # cliente_socket.sendall(mensagem.encode())
 
     # Recebe resposta do servidor
-    if resposta:
-        print('Servidor:', resposta)
+    # if resposta:
+    #     print('Servidor:', resposta)
