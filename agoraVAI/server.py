@@ -95,6 +95,21 @@ class Game:
         data = data.replace('PLAYER_ID', str(self.players[1].name))
         cliente2.sendall(data.encode())
 
+    def send_start_game(self, cliente1, cliente2):
+        data = 'START_GAME | PLAYER_ID |   | PREVIOUS_CARD |   |   |   |   |  | NEXT_PLAYER'
+        hand = self.get_cards_stringfied(self.players[0].hand)
+        data = data.replace('PREVIOUS_CARD', self.previous_card.get_card_str())
+        data = data.replace('PLAYER_ID', str(self.players[0].name))
+        data = data.replace('NEXT_PLAYER', str(self.turn_player.name))
+        cliente1.sendall(data.encode())
+    
+        data = 'START_GAME | PLAYER_ID |   | PREVIOUS_CARD |   |   |   |   |  | NEXT_PLAYER'
+        hand = self.get_cards_stringfied(self.players[1].hand)
+        data = data.replace('PREVIOUS_CARD', self.previous_card.get_card_str())
+        data = data.replace('PLAYER_ID', str(self.players[1].name))
+        data = data.replace('NEXT_PLAYER', str(self.turn_player.name))
+        cliente2.sendall(data.encode())
+
         self.started = True
     
     def get_cards_stringfied(self, deck):
@@ -180,6 +195,8 @@ def server():
     game.previous_card.print_card()
 
     print("Jogador inicial:", game.turn_player.name)
+
+    game.send_start_game(cliente1, cliente2)
 
     # Loop infinito para receber e enviar mensagens
     while True:
