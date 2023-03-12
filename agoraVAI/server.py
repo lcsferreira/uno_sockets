@@ -6,7 +6,7 @@ from termcolor import colored
 # Configurações do servidor
 HOST = 'localhost'
 PORT = 7000
-# data_Decks = 'HAND | PLAYER_ID | CARD_TO_PUT | PREVIOUS_CARD | NUMBER | SET_COLOR | STATUS | DATA | STRING_DECK | NEXT_PLAYER'
+# data_Decks = 'INSTRUCTION | PLAYER_ID | CARD_TO_PUT | PREVIOUS_CARD | NUMBER | SET_COLOR | STATUS | DATA | STRING_DECK | NEXT_PLAYER'
 
 class Game:
     def __init__(self):
@@ -196,7 +196,6 @@ def server():
     print("Jogador inicial:", game.turn_player.name)
 
     game.send_start_game(cliente1, cliente2)
-    
 
     # Loop infinito para receber e enviar mensagens
     while True:
@@ -207,9 +206,7 @@ def server():
             print('Cliente 1:', mensagem1)
             # Envia mensagem para o cliente 2
             formatted_message = format_data(mensagem1)
-            print(formatted_message)
-            
-            
+            print(formatted_message) 
 
         # Recebe mensagem do cliente 2
         mensagem2 = cliente2.recv(1024).decode()
