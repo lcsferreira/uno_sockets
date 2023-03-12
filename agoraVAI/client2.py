@@ -1,4 +1,6 @@
+import random
 import socket
+import sys
 from termcolor import colored
 
 from server import Card
@@ -13,6 +15,9 @@ cliente_socket.connect((HOST, PORT))
 
 player_hand = list()
 player_id = 0
+
+def random_card(self):
+    return random.choice(self.deck)
 
 def menu():
     print("Type 'put' to put a card")
@@ -33,13 +38,35 @@ def put_card():
     print_hand(player_hand)
     option = menu()
     if(option == 'put'):
-        print("Digite a carta que deseja jogar (cor número)")
-        card_number = input(' -> ')
+        card_to_put = input("Qual carta você deseja jogar? (cor número)")
+        card_to_put_formated = card_to_put.split()
+        card_remove_to_hand = Card(card_to_put_formated[0], card_to_put_formated[1])
         
+        for cards in player_hand:            
+            if cards.color == card_to_put_formated[0] or cards.number == card_to_put_formated[1]:
+                print("Você jogou a carta ", colored(card_to_put_formated[1], card_to_put_formated[0]))
+                
+                # player_hand.remove(card_remove_to_hand) #AQUI TA ERRADO, N SEI PQ
+                
+                data = 'CARD_PUT |   |   |   |   |   |  SUCESS |  DATA | STRING_DECK | PLAYER_NEXT_TURN ' #ENVIAR O PLAYER TURN COMO?
+                data = data.replace('STRING_DECK', str(player_hand))  #TEM QUE ENVIAR COM A CARTA REMOVIDA, ARRUMAR ALI O REMOVE
+                cliente_socket.sendall(data.encode())
+                break
+            else:
+                print("Carta inválida, jogue novamente!")
+    elif(option == 'buy'):
+        print("Você comprou uma carta")
+        
+        algo = random_card()
+        print(algo)
+        data = 'CARD_BUYED |   |   |   |   |   |  SUCESS |  DATA | STRING_DECK | PLAYER_NEXT_TURN '
+        cliente_socket.sendall(data.encode())
+    elif(option == 'quit'):
+        sys.exit()
 
 def verify_type(data):
+    player_id = data[1]
     if data[0] == 'HAND':
-        player_id = data[1]
         print("Você é o jogador ", player_id)
         print("Recebendo as cartas...")
         #Recebe a mão do servidor
@@ -52,6 +79,7 @@ def verify_type(data):
         print_hand(player_hand)
 
     elif data[0] == 'START_GAME':
+        print('Cliente 2 ID: ', player_id)
         print("O jogo começou!")
         previous_card = data[3]
         previous_card = previous_card.split(' ')

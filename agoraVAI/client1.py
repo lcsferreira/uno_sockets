@@ -1,4 +1,5 @@
 import socket
+import sys
 from termcolor import colored
 
 from server import Card
@@ -33,13 +34,31 @@ def put_card():
     print_hand(player_hand)
     option = menu()
     if(option == 'put'):
-        print("Digite a carta que deseja jogar (cor número)")
-        card_number = input(' -> ')
+        card_to_put = input("Qual carta você deseja jogar? (cor número)")
+        card_to_put_formated = card_to_put.split() #formatei pra comparar no if, única solução que achei pra comparar as cores e números
+        # card_remove_to_hand = Card(card_to_put_formated[0], card_to_put_formated[1]) #talvez precisa para remover? não sei
         
-
+        for cards in player_hand:            
+            if cards.color == card_to_put_formated[0] or cards.number == card_to_put_formated[1]: #se a cor ou o nº for igual, joga a carta
+                print("Você jogou a carta ", colored(card_to_put_formated[1], card_to_put_formated[0]))
+                
+                data = 'CARD_PUT |   |   |   |   |   |  SUCESS |  DATA | STRING_DECK | PLAYER_NEXT_TURN ' #aqui envia pro servidor, copilot
+                cliente_socket.sendall(data.encode()) #envia pro servidor
+                break
+            else:
+                print("Carta inválida, jogue novamente!")
+    elif(option == 'buy'):
+        print("Você comprou uma carta")
+        
+        data = 'CARD_BUYED |   |   |   |   |   |  SUCESS |  DATA | STRING_DECK | PLAYER_NEXT_TURN '
+        cliente_socket.sendall(data.encode())
+    elif(option == 'quit'):
+        sys.exit()
+        
 def verify_type(data):
+    player_id = data[1]
+    
     if data[0] == 'HAND':
-        player_id = data[1]
         print("Você é o jogador ", player_id)
         print("Recebendo as cartas...")
         #Recebe a mão do servidor
@@ -52,6 +71,7 @@ def verify_type(data):
         print_hand(player_hand)
 
     elif data[0] == 'START_GAME':
+        print('Cliente 1 ID: ', player_id)
         print("O jogo começou!")
         previous_card = data[3]
         previous_card = previous_card.split(' ')

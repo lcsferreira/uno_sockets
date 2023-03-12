@@ -191,21 +191,25 @@ def server():
 
     print('Jogo iniciado!')
 
-    print("Carta inicial:")
-    game.previous_card.print_card()
+    print("Carta inicial:", game.previous_card.print_card())
 
     print("Jogador inicial:", game.turn_player.name)
 
     game.send_start_game(cliente1, cliente2)
+    
 
     # Loop infinito para receber e enviar mensagens
     while True:
         # Recebe mensagem do cliente 1
         mensagem1 = cliente1.recv(1024).decode()
+        
         if mensagem1:
             print('Cliente 1:', mensagem1)
             # Envia mensagem para o cliente 2
             formatted_message = format_data(mensagem1)
+            print(formatted_message)
+            
+            
 
         # Recebe mensagem do cliente 2
         mensagem2 = cliente2.recv(1024).decode()
@@ -213,6 +217,7 @@ def server():
             print('Cliente 2:', mensagem2)
             # Envia mensagem para o cliente 1
             formatted_message = format_data(mensagem1)
+            print(formatted_message)
             
 if __name__ == '__main__':
     server()
