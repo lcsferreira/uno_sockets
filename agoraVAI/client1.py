@@ -98,7 +98,6 @@ while True:
         
     #parei aqui, tentando fazer o buy card!
     
-    
     # verify_type(formated_data)
     
     # if formated_data[0] == 'HAND':
