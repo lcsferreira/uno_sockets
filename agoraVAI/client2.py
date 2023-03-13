@@ -1,4 +1,3 @@
-import random
 import socket
 import sys
 from termcolor import colored
@@ -15,57 +14,79 @@ cliente_socket.connect((HOST, PORT))
 
 player_hand = list()
 player_id = 0
-
-def random_card(self):
-    return random.choice(self.deck)
+previous_card = None
 
 def menu():
-    print("Type 'put' to put a card")
-    print("Type 'buy' to buy cards")
-    print("Type 'quit' to quit the game")
-    option = input(' -> ')
-    return option
+    option = ""
+    while option != 'put' or option != 'buy' or option != 'quit':
+        print("\nType 'put' to put a card")
+        print("Type 'buy' to buy cards")
+        print("Type 'quit' to quit the game")
+        option = input(' ->')
+        if option == 'put' or option == 'buy' or option == 'quit':
+            return option
+        else:
+            print("Opção inválida, tente novamente")
 
 def print_hand(deck):
     for card in deck:
-        card.print_card()
+        print(card.get_card_str())
 
 def format_data(data):
     return data.split(" | ")
 
+def remove_card_from_hand(card):
+    global player_hand
+    for i in range(0, len(player_hand)):
+            if player_hand[i].number == card.number and player_hand[i].color == card.color:
+                player_hand.pop(i)
+                break
+
 def put_card():
+    global player_hand, previous_card
+    print("A carta da mesa é: ", colored(previous_card[0], previous_card[1]))
     print("Suas cartas são: ")
     print_hand(player_hand)
     option = menu()
     if(option == 'put'):
-        card_to_put = input("Qual carta você deseja jogar? (cor número)")
+        has_card = False
+        card_to_put = input("Qual carta você deseja jogar? (cor número):")
         card_to_put_formated = card_to_put.split()
-        card_remove_to_hand = Card(card_to_put_formated[0], card_to_put_formated[1])
-        
+
         for cards in player_hand:            
-            if cards.color == card_to_put_formated[0] or cards.number == card_to_put_formated[1]:
-                print("Você jogou a carta ", colored(card_to_put_formated[1], card_to_put_formated[0]))
-                
-                # player_hand.remove(card_remove_to_hand) #AQUI TA ERRADO, N SEI PQ
-                
-                data = 'CARD_PUT |   |   |   |   |   |  SUCESS |  DATA | STRING_DECK | PLAYER_NEXT_TURN ' #ENVIAR O PLAYER TURN COMO?
-                data = data.replace('STRING_DECK', str(player_hand))  #TEM QUE ENVIAR COM A CARTA REMOVIDA, ARRUMAR ALI O REMOVE
-                cliente_socket.sendall(data.encode())
+            if cards.color == card_to_put_formated[0] or cards.number == card_to_put_formated[1]: #se a cor ou o nº for igual, joga a carta
+                has_card = True
                 break
             else:
-                print("Carta inválida, jogue novamente!")
+                has_card = False
+        if has_card == True and (card_to_put_formated[1] == "wild" or card_to_put_formated[1] == "wild_draw4"):
+            color_wild = input("Qual cor você deseja jogar? (red, blue, green, yellow):")
+            card_to_put_formated[0] = color_wild
+            print("Você jogou a carta ", colored(card_to_put_formated[1], card_to_put_formated[0]))    
+            data = 'CARD_PUT | PLAYER_ID | CARD_TO_PUT |   |   |   |   |   |   |  '
+            data = data.replace('PLAYER_ID', player_id)
+            data = data.replace('CARD_TO_PUT', card_to_put)
+            cliente_socket.sendall(data.encode()) #envia pro servidor
+        elif has_card == True and (previous_card[1] == card_to_put_formated[0] or previous_card[0] == card_to_put_formated[1]):
+            print("Você jogou a carta ", colored(card_to_put_formated[1], card_to_put_formated[0]))    
+            data = 'CARD_PUT | PLAYER_ID | CARD_TO_PUT |   |   |   |   |   |   |  '
+            data = data.replace('PLAYER_ID', player_id)
+            data = data.replace('CARD_TO_PUT', card_to_put)
+            cliente_socket.sendall(data.encode()) #envia pro servidor
+        else:
+            print("Você não pode jogar essa carta! (Ou você não tem ela na mão, ou ela não é válida)")
+            put_card()    
     elif(option == 'buy'):
-        print("Você comprou uma carta")
-        
-        algo = random_card()
-        print(algo)
-        data = 'CARD_BUYED |   |   |   |   |   |  SUCESS |  DATA | STRING_DECK | PLAYER_NEXT_TURN '
+        data = 'BUY_CARD | PLAYER_ID |   |   |   |   |   |   |   |  '
+        data = data.replace('PLAYER_ID', player_id)
         cliente_socket.sendall(data.encode())
     elif(option == 'quit'):
         sys.exit()
-
+        
 def verify_type(data):
+    global player_id, player_hand, previous_card
     player_id = data[1]
+    
     if data[0] == 'HAND':
         print("Você é o jogador ", player_id)
         print("Recebendo as cartas...")
@@ -76,21 +97,99 @@ def verify_type(data):
         for card in string_deck:
             card = card.split(' ')
             player_hand.append(Card(card[1], card[0]))
-        print_hand(player_hand)
 
     elif data[0] == 'START_GAME':
-        print('Cliente 2 ID: ', player_id)
-        print("O jogo começou!")
+        print("\nO jogo começou!")
         previous_card = data[3]
         previous_card = previous_card.split(' ')
-        print("A carta anterior é: ", colored(previous_card[0], previous_card[1]))
         #se o next_player for igual ao player_id, é a vez dele
         if(data[9] == player_id):
             print("É a sua vez de jogar!")
             put_card()
         else:
+            print("A carta da mesa é: ", colored(previous_card[0], previous_card[1]))
+            print('Suas cartas são:')
+            print_hand(player_hand)
             print("É a vez do jogador ", data[9])
             print("Aguardando jogada do jogador ", data[9])
+            print("O seu adversário possui: ", data[7], " cartas")
+
+    elif data[0] == "ATT_CARD":
+        if(data[6] == 'Success'):
+            print("A carta foi jogada com sucesso!")
+            previous_card = data[3]
+            previous_card = previous_card.split(' ')
+            if previous_card[0] == 'draw2':
+                print("Você comprou 2 cartas obrigatoriamente!")
+                cards_to_add = data[8]
+                cards_to_add = cards_to_add.split(', ')
+                for card in cards_to_add:
+                    card = card.split(' ')
+                    player_hand.append(Card(card[1], card[0]))
+            elif previous_card[0] == 'wild_draw4':
+                print("Você comprou 4 cartas obrigatoriamente!")
+                cards_to_add = data[8]
+                cards_to_add = cards_to_add.split(', ')
+                for card in cards_to_add:
+                    card = card.split(' ')
+                    player_hand.append(Card(card[1], card[0]))
+        
+            print("O seu adversário possui: ", data[7], " cartas")
+            if(data[9] == player_id):
+                print("É a sua vez de jogar!")
+                put_card()
+            else:
+                card_formatted = data[3]
+                card_formatted = card_formatted.split(' ')
+                print(card_formatted)
+                remove_card = Card(card_formatted[1], card_formatted[0])
+                remove_card_from_hand(remove_card)
+                print("A carta da mesa é: ", colored(previous_card[0], previous_card[1]))
+                print('Suas cartas são:')
+                print_hand(player_hand)
+                print("É a vez do jogador ", data[9])
+                print("Aguardando jogada do jogador ", data[9])
+                print("O seu adversário possui: ", data[7], " cartas")
+        else:
+            print("A carta não é válida!")
+            previous_card = data[3]
+            previous_card = previous_card.split(' ')
+            print("A carta da mesa é: ", colored(previous_card[0], previous_card[1]))
+            if(data[9] == player_id):
+                print("Jogue outra carta!")
+                put_card()
+            else:
+                print("A carta da mesa é: ", colored(previous_card[0], previous_card[1]))
+                print('Suas cartas são:')
+                print_hand(player_hand)
+                print("É a vez do jogador ", data[9])
+                print("Aguardando jogada do jogador ", data[9])
+                print("O seu adversário possui: ", data[7], " cartas")
+    elif data[0] == "CARDS_BUYED":
+        string_deck = data[8]
+        if(string_deck != 'empty'):
+            print("Você compra até conseguir jogar!")
+            print("Recebendo as cartas...")
+
+            if(string_deck == "no cards"):
+                print("Você comprou e jogou!")
+            else:
+                string_deck = string_deck.split(', ')
+                print("você comprou ", len(string_deck), " cartas")
+                for card in string_deck:
+                    card = card.split(' ')
+                    player_hand.append(Card(card[1], card[0]))
+
+            previous_card = data[2]
+            previous_card = previous_card.split(' ')
+            print("O seu adversário possui: ", data[7], " cartas")
+        else:
+            previous_card = data[2]
+            previous_card = previous_card.split(' ')
+            print("O outro jogador comprou cartas!")
+            print("É a sua vez de jogar!")
+            print("O seu adversário possui: ", data[7], " cartas")
+            put_card()
    
 # Loop infinito para enviar e receber mensagens
 while True:
@@ -99,23 +198,3 @@ while True:
     formated_data = format_data(resposta)
 
     verify_type(formated_data)
-    
-    # if message == 'buy':
-    #     print('Você comprou uma carta')
-    #     data = 'CARD_BUYED |   |   |   |   |   |  SUCESS |  DATA | STRING_DECK | PLAYER_NEXT_TURN '
-        
-    #parei aqui, tentando fazer o buy card!
-    
-    
-    # verify_type(formated_data)
-    
-    # if formated_data[0] == 'HAND':
-        # print('Sua mão é: ', algo)        
-        
-    # Envia mensagem para o servidor
-    # mensagem = input('Cliente 1: ')
-    # cliente_socket.sendall(mensagem.encode())
-
-    # Recebe resposta do servidor
-    # if resposta:
-    #     print('Servidor:', resposta)

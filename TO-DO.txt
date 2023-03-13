@@ -1,22 +1,14 @@
 TO-DO 
-- Implementar o quit game (Olhar como ele fazia no projeto pela interface gráfica)
-- Modificar as mensagens que o cliente envia para o servidor (Olhar como ele fazia no projeto pela interface gráfica)
-- Implementar o envio dessas mensagens com o terminal (Com isso, o jogo fica funcional)
-- Mudar os nomes das cartas para ficar melhor no temrinal
-- Printar no cliente somente o necessário (Não printar o que o servidor já printa)
+- MVP PRONTO!
+- implementar print da quantidade de cartas de cada jogador (FEITO)
 
-[JUATS]
-# ARRUMEI O QUE TA SENDO PRINTADO NO INÍCIO DO GAME;
-# PROGRESS BARR PARA OS CLIENTES;
-# LAYOUT NO TERMINAL PARA O CLIENTE REFATORADO, FICOU MELHOR;
+- implementar draw2 
+  (cliente 2 n ta atualizando previous_card qnd faz o buy)
+  (Quebrando na hora de printar na tela a mão após jogar um draw2)
+- implementar lógica de quem ganha
+- implementar wild e wild_draw4
 
+- Retirar o skip e reverse
 
-TO-DO
-- Colocar jogo com dois players
-  - Com isso, vai precisar implementar a lógica dos turnos
-  - IDEIA: quando o servidor manda uma msg ele manda o player id na msg, usar isso como verificação no client se é ele que precisa atualizar suas informações, se não apenas print da previous_card
-
-- Colocar as cartas especiais
-  - draw_two (+2), wild (escolhe a cor), draw_four (+4 e escolhe a cor)
-  - IDEIA: usar como base o código de compra, mas é mais simples. Apenas adiciona duas cartas em forma de string e manda na msg o client recebe e adiciona na sua mão
+- limpar o código, tirar oq não é utilizado, colocar em funções
 
