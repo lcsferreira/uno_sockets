@@ -1,10 +1,8 @@
 TO-DO 
 - MVP PRONTO!
 - implementar print da quantidade de cartas de cada jogador (FEITO)
+- implementar draw2 (FEITO)
 
-- implementar draw2 
-  (cliente 2 n ta atualizando previous_card qnd faz o buy)
-  (Quebrando na hora de printar na tela a mão após jogar um draw2)
 - implementar lógica de quem ganha
 - implementar wild e wild_draw4
 

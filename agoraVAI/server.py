@@ -274,16 +274,6 @@ def server():
                         else:
                             game.turn_player = game.players[1]
 
-                        string_deck = ""
-
-                        if card_to_put.number == "draw2":
-                            for i in range(0, 2):
-                                new_card = game.random_card()
-                                game.players[1].add_card(new_card)
-                                string_deck += new_card.get_card_str() + ", "
-                            string_deck = string_deck[:-2]
-
-
                         game.previous_card = card_to_put
                         game.players[0].remove_card(card_to_put)
                         data = 'ATT_CARD | PLAYER_ID |   | PREVIOUS_CARD |   |   | STATUS | DATA | STRING_DECK | NEXT_PLAYER'
@@ -294,13 +284,24 @@ def server():
                         data = data.replace('STRING_DECK', " ")
                         data = data.replace('STATUS', 'Success')
                         cliente1.sendall(data.encode())
-                        data = 'ATT_CARD | PLAYER_ID |   | PREVIOUS_CARD |   |   | STATUS | DATA |   | NEXT_PLAYER'
+
+                        string_deck = ""
+
+                        if card_to_put.number == "draw2":
+                            for i in range(0, 2):
+                                new_card = game.random_card()
+                                game.players[1].add_card(new_card)
+                                string_deck += new_card.get_card_str() + ", "
+                            string_deck = string_deck[:-2]
+
+                        data = 'ATT_CARD | PLAYER_ID |   | PREVIOUS_CARD |   |   | STATUS | DATA | STRING_DECK | NEXT_PLAYER'
                         data = data.replace('PREVIOUS_CARD', game.previous_card.get_card_str())
                         data = data.replace('PLAYER_ID', str(game.players[1].name))
                         data = data.replace('NEXT_PLAYER', str(game.turn_player.name))
                         data = data.replace('DATA', str(len(game.players[0].hand)))
                         data = data.replace('STRING_DECK', string_deck)
                         data = data.replace('STATUS', 'Success')
+                        print(data)
                         cliente2.sendall(data.encode())
 
                 elif formatted_message[0] == 'BUY_CARD':
@@ -319,7 +320,7 @@ def server():
                         print('Cliente 1 comprou ', len(cards_buyed), ' cartas')
                         for card in cards_buyed:
                             string_deck += card.get_card_str() + ', '
-                            game.players[1].add_card(card)
+                            game.players[0].add_card(card)
                         
                         string_deck = string_deck[:-2]
                     print("Cliente 1 jogou: ", game.previous_card.get_card_str())
@@ -330,7 +331,7 @@ def server():
                     data = data.replace('PREVIOUS_CARD', game.previous_card.get_card_str())
                     data = data.replace('DATA', str(len(game.players[1].hand)))
                     data = data.replace('SUCCESS', 'Success')
-
+                    print(data)
                     cliente1.sendall(data.encode())
                     
                     string_deck = 'empty'
@@ -342,14 +343,14 @@ def server():
                     data = data.replace('PREVIOUS_CARD', game.previous_card.get_card_str())
                     data = data.replace('DATA', str(len(game.players[0].hand)))
                     data = data.replace('SUCCESS', 'Success')
-
+                    print(data)
                     cliente2.sendall(data.encode())
 
             mensagem2 = cliente2.recv(1024).decode()
             print(mensagem2)
             if mensagem2:
                 print('Cliente 2:', mensagem2)
-                # Envia mensagem para o cliente 1
+                # Envia mensagem para o cliente 2
                 formatted_message = format_data(mensagem2)
                 if formatted_message[0] == "CARD_PUT":
                     card_to_put = formatted_message[2]
@@ -369,7 +370,6 @@ def server():
                                 game.players[0].add_card(new_card)
                                 string_deck += new_card.get_card_str() + ", "
                             string_deck = string_deck[:-2]
-
 
                         game.previous_card = card_to_put
                         game.players[1].remove_card(card_to_put)
@@ -395,40 +395,42 @@ def server():
                         game.turn_player = game.players[0]
                     else:
                         game.turn_player = game.players[1]
-                    string_deck = 'empty'
 
-                    data = 'CARDS_BUYED | PLAYER_ID | PREVIOUS_CARD |   |   |   | STATUS | DATA | STRING_DECK | NEXT_PLAYER'
-                    data = data.replace('STRING_DECK', string_deck)
-                    data = data.replace('PLAYER_ID', str(game.players[1].name))
-                    data = data.replace('NEXT_PLAYER', str(game.turn_player.name))
-                    data = data.replace('PREVIOUS_CARD', game.previous_card.get_card_str())
-                    data = data.replace('DATA', str(len(game.players[1].hand)))
-                    data = data.replace('SUCCESS', 'Success')
-                    cliente1.sendall(data.encode())
-
-                    string_deck = ""
-                    data = 'CARDS_BUYED | PLAYER_ID | PREVIOUS_CARD |   |   |   | STATUS | DATA | STRING_DECK | NEXT_PLAYER'
+                    string_deck_2 = ""
                     print('Cliente 2 está comprando cartas...')
                     cards_buyed = game.buy_cards()
                     if len(cards_buyed) == 0:
                         print("Cliente 2 não comprou cartas")
-                        string_deck = "no cards"
+                        string_deck_2 = "no cards"
                     else:
                         print('Cliente 2 comprou ', len(cards_buyed), ' cartas')
                         for card in cards_buyed:
-                            string_deck += card.get_card_str() + ', '
+                            string_deck_2 += card.get_card_str() + ', '
                             game.players[1].add_card(card)
                         
-                        string_deck = string_deck[:-2]
-                    print("Cliente 2 jogou: ", game.previous_card.get_card_str())
-                    
+                        string_deck_2 = string_deck_2[:-2]
+
+                    string_deck = 'empty'
+                    data = 'CARDS_BUYED | PLAYER_ID | PREVIOUS_CARD |   |   |   | STATUS | DATA | STRING_DECK | NEXT_PLAYER'
                     data = data.replace('STRING_DECK', string_deck)
                     data = data.replace('PLAYER_ID', str(game.players[0].name))
                     data = data.replace('NEXT_PLAYER', str(game.turn_player.name))
                     data = data.replace('PREVIOUS_CARD', game.previous_card.get_card_str())
+                    data = data.replace('DATA', str(len(game.players[1].hand)))
+                    data = data.replace('SUCCESS', 'Success')
+                    print(data)
+                    cliente1.sendall(data.encode())
+
+                    data = 'CARDS_BUYED | PLAYER_ID | PREVIOUS_CARD |   |   |   | STATUS | DATA | STRING_DECK | NEXT_PLAYER'
+                    print("Cliente 2 jogou: ", game.previous_card.get_card_str())
+                    
+                    data = data.replace('STRING_DECK', string_deck_2)
+                    data = data.replace('PLAYER_ID', str(game.players[1].name))
+                    data = data.replace('NEXT_PLAYER', str(game.turn_player.name))
+                    data = data.replace('PREVIOUS_CARD', game.previous_card.get_card_str())
                     data = data.replace('DATA', str(len(game.players[0].hand)))
                     data = data.replace('SUCCESS', 'Success')
-
+                    print(data)
                     cliente2.sendall(data.encode())
 
 

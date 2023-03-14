@@ -30,7 +30,7 @@ def menu():
 
 def print_hand(deck):
     for card in deck:
-        print(card.get_card_str())
+        card.print_card()
 
 def format_data(data):
     return data.split(" | ")
@@ -119,14 +119,15 @@ def verify_type(data):
             print("A carta foi jogada com sucesso!")
             previous_card = data[3]
             previous_card = previous_card.split(' ')
-            if previous_card[0] == 'draw2':
+            if previous_card[0] == 'draw2' and player_id == data[9]:
                 print("Você comprou 2 cartas obrigatoriamente!")
                 cards_to_add = data[8]
                 cards_to_add = cards_to_add.split(', ')
+                print(cards_to_add)
                 for card in cards_to_add:
                     card = card.split(' ')
                     player_hand.append(Card(card[1], card[0]))
-            elif previous_card[0] == 'wild_draw4':
+            elif previous_card[0] == 'wild_draw4' and player_id == data[9]:
                 print("Você comprou 4 cartas obrigatoriamente!")
                 cards_to_add = data[8]
                 cards_to_add = cards_to_add.split(', ')
@@ -167,6 +168,8 @@ def verify_type(data):
                 print("O seu adversário possui: ", data[7], " cartas")
     elif data[0] == "CARDS_BUYED":
         string_deck = data[8]
+        previous_card = data[2]
+        previous_card = previous_card.split(' ')
         if(string_deck != 'empty'):
             print("Você compra até conseguir jogar!")
             print("Recebendo as cartas...")
@@ -179,13 +182,9 @@ def verify_type(data):
                 for card in string_deck:
                     card = card.split(' ')
                     player_hand.append(Card(card[1], card[0]))
-
-            previous_card = data[2]
-            previous_card = previous_card.split(' ')
+            print("A carta da mesa é: ", colored(previous_card[0], previous_card[1]))
             print("O seu adversário possui: ", data[7], " cartas")
         else:
-            previous_card = data[2]
-            previous_card = previous_card.split(' ')
             print("O outro jogador comprou cartas!")
             print("É a sua vez de jogar!")
             print("O seu adversário possui: ", data[7], " cartas")
