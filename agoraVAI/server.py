@@ -135,6 +135,41 @@ class Game:
         cliente2.sendall(data.encode())
 
         self.started = True
+
+    def check_winner(self, cliente1, cliente2):
+        for player in self.players:
+            if len(player.hand) == 0:
+                self.has_winner = True
+                if player.name == self.players[0].name:
+                    print("Player ", player.name," ganhou!")
+                    data = 'ATT_CARD | PLAYER_ID |   | PREVIOUS_CARD |   |   | STATUS | DATA |   |  '
+                    data = data.replace('PREVIOUS_CARD', self.previous_card.get_card_str())
+                    data = data.replace('PLAYER_ID', str(self.players[0].name))
+                    data = data.replace('DATA', "Winner")
+                    data = data.replace('STATUS', 'Success')
+                    cliente1.sendall(data.encode())
+                    data = 'ATT_CARD | PLAYER_ID |   | PREVIOUS_CARD |   |   | STATUS | DATA |   |  '
+                    data.replace('PREVIOUS_CARD', self.previous_card.get_card_str())
+                    data = data.replace('PLAYER_ID', str(self.players[1].name))
+                    data = data.replace('DATA', "Loser")
+                    data = data.replace('STATUS', 'Success')
+                    cliente2.sendall(data.encode())
+                    self.started = False
+                else:
+                    data = 'ATT_CARD | PLAYER_ID |   | PREVIOUS_CARD |   |   | STATUS | DATA |   |  '
+                    data.replace('PREVIOUS_CARD', self.previous_card.get_card_str())
+                    data = data.replace('PLAYER_ID', str(self.players[0].name))
+                    data = data.replace('DATA', "Loser")
+                    data = data.replace('STATUS', 'Success')
+                    cliente1.sendall(data.encode())
+                    print("Player ", player.name," ganhou!")
+                    data = 'ATT_CARD | PLAYER_ID |   | PREVIOUS_CARD |   |   | STATUS | DATA |   |  '
+                    data = data.replace('PREVIOUS_CARD', self.previous_card.get_card_str())
+                    data = data.replace('PLAYER_ID', str(self.players[1].name))
+                    data = data.replace('DATA', "Winner")
+                    data = data.replace('STATUS', 'Success')
+                    cliente2.sendall(data.encode())
+                    self.started = False
     
     def get_cards_stringfied(self, deck):
         deck_stringfied:str = ""
@@ -276,6 +311,9 @@ def server():
 
                         game.previous_card = card_to_put
                         game.players[0].remove_card(card_to_put)
+
+                        game.check_winner(cliente1, cliente2)
+
                         data = 'ATT_CARD | PLAYER_ID |   | PREVIOUS_CARD |   |   | STATUS | DATA | STRING_DECK | NEXT_PLAYER'
                         data = data.replace('PREVIOUS_CARD', game.previous_card.get_card_str())
                         data = data.replace('PLAYER_ID', str(game.players[0].name))
@@ -362,6 +400,11 @@ def server():
                         else:
                             game.turn_player = game.players[1]
 
+                        game.previous_card = card_to_put
+                        game.players[1].remove_card(card_to_put)
+                        
+                        game.check_winner(cliente1, cliente2)
+
                         string_deck = ""
                         
                         if card_to_put.number == "draw2":
@@ -371,8 +414,6 @@ def server():
                                 string_deck += new_card.get_card_str() + ", "
                             string_deck = string_deck[:-2]
 
-                        game.previous_card = card_to_put
-                        game.players[1].remove_card(card_to_put)
                         data = 'ATT_CARD | PLAYER_ID |   | PREVIOUS_CARD |   |   | STATUS | DATA | STRING_DECK | NEXT_PLAYER'
                         data = data.replace('PREVIOUS_CARD', game.previous_card.get_card_str())
                         data = data.replace('PLAYER_ID', str(game.players[0].name))

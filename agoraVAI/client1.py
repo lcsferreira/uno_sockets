@@ -134,23 +134,30 @@ def verify_type(data):
                 for card in cards_to_add:
                     card = card.split(' ')
                     player_hand.append(Card(card[1], card[0]))
-        
-            print("O seu adversário possui: ", data[7], " cartas")
-            if(data[9] == player_id):
-                print("É a sua vez de jogar!")
-                put_card()
+            
+            if(data[7] == 'Winner'):
+                print("Parabéns, Você GANHOU o jogo!")
+                sys.exit()
+            elif(data[7] == 'Loser'):
+                print("Mais sorte da próxima vez, Você PERDEU o jogo!")
+                sys.exit()
             else:
-                card_formatted = data[3]
-                card_formatted = card_formatted.split(' ')
-                print(card_formatted)
-                remove_card = Card(card_formatted[1], card_formatted[0])
-                remove_card_from_hand(remove_card)
-                print("A carta da mesa é: ", colored(previous_card[0], previous_card[1]))
-                print('Suas cartas são:')
-                print_hand(player_hand)
-                print("É a vez do jogador ", data[9])
-                print("Aguardando jogada do jogador ", data[9])
                 print("O seu adversário possui: ", data[7], " cartas")
+                if(data[9] == player_id):
+                    print("É a sua vez de jogar!")
+                    put_card()
+                else:
+                    card_formatted = data[3]
+                    card_formatted = card_formatted.split(' ')
+                    print(card_formatted)
+                    remove_card = Card(card_formatted[1], card_formatted[0])
+                    remove_card_from_hand(remove_card)
+                    print("A carta da mesa é: ", colored(previous_card[0], previous_card[1]))
+                    print('Suas cartas são:')
+                    print_hand(player_hand)
+                    print("É a vez do jogador ", data[9])
+                    print("Aguardando jogada do jogador ", data[9])
+                    print("O seu adversário possui: ", data[7], " cartas")
         else:
             print("A carta não é válida!")
             previous_card = data[3]
