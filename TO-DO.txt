@@ -2,11 +2,10 @@ TO-DO
 - MVP PRONTO!
 - implementar print da quantidade de cartas de cada jogador (FEITO)
 - implementar draw2 (FEITO)
+- implementar lógica de quem ganha (FEITO)
+- Retirar o skip e reverse (FEITO)
+- implementar wild(FEITO)
 
-- implementar lógica de quem ganha
-- implementar wild e wild_draw4
-
-- Retirar o skip e reverse
 
 - limpar o código, tirar oq não é utilizado, colocar em funções
 

@@ -37,6 +37,8 @@ def format_data(data):
 
 def remove_card_from_hand(card):
     global player_hand
+    if card.number == "wild":
+        card.color = "white"
     for i in range(0, len(player_hand)):
             if player_hand[i].number == card.number and player_hand[i].color == card.color:
                 player_hand.pop(i)
@@ -52,20 +54,28 @@ def put_card():
         has_card = False
         card_to_put = input("Qual carta você deseja jogar? (cor número):")
         card_to_put_formated = card_to_put.split()
-
-        for cards in player_hand:            
-            if cards.color == card_to_put_formated[0] or cards.number == card_to_put_formated[1]: #se a cor ou o nº for igual, joga a carta
-                has_card = True
-                break
-            else:
-                has_card = False
-        if has_card == True and (card_to_put_formated[1] == "wild" or card_to_put_formated[1] == "wild_draw4"):
+        if card_to_put_formated[0] == "wild":
+            for cards in player_hand: 
+                if cards.number == card_to_put_formated[0]:
+                    has_card = True
+                    break
+                else:
+                    has_card = False
+        else:
+            for cards in player_hand:            
+                if cards.color == card_to_put_formated[0] or cards.number == card_to_put_formated[1]: #se a cor ou o nº for igual, joga a carta
+                    has_card = True
+                    break
+                else:
+                    has_card = False
+        if has_card == True and (card_to_put_formated[0] == "wild"):
             color_wild = input("Qual cor você deseja jogar? (red, blue, green, yellow):")
-            card_to_put_formated[0] = color_wild
-            print("Você jogou a carta ", colored(card_to_put_formated[1], card_to_put_formated[0]))    
-            data = 'CARD_PUT | PLAYER_ID | CARD_TO_PUT |   |   |   |   |   |   |  '
+            card_to_put_formated.append(color_wild)
+            print("Você jogou a carta ", colored(card_to_put_formated[0], card_to_put_formated[1]))    
+            data = 'CARD_PUT | PLAYER_ID | CARD_TO_PUT |   |   | SET_COLOR |   |   |   |  '
             data = data.replace('PLAYER_ID', player_id)
             data = data.replace('CARD_TO_PUT', card_to_put)
+            data = data.replace('SET_COLOR', color_wild)
             cliente_socket.sendall(data.encode()) #envia pro servidor
         elif has_card == True and (previous_card[1] == card_to_put_formated[0] or previous_card[0] == card_to_put_formated[1]):
             print("Você jogou a carta ", colored(card_to_put_formated[1], card_to_put_formated[0]))    
@@ -127,7 +137,7 @@ def verify_type(data):
                 for card in cards_to_add:
                     card = card.split(' ')
                     player_hand.append(Card(card[1], card[0]))
-            elif previous_card[0] == 'wild_draw4' and player_id == data[9]:
+            elif player_id == data[9]:
                 print("Você comprou 4 cartas obrigatoriamente!")
                 cards_to_add = data[8]
                 cards_to_add = cards_to_add.split(', ')

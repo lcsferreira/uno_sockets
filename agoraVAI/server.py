@@ -1,9 +1,8 @@
 import os
 import random
 import socket
-import threading
-import time
 from termcolor import colored
+import copy
 
 # Configurações do servidor
 HOST = 'localhost'
@@ -27,12 +26,13 @@ class Game:
         self.players.remove(player)
 
     def create_deck(self):
-        card_values = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "draw2", "wild_draw4", "wild"]
+        card_values = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "draw2", "wild"]
         card_colors = ["blue", "red", "yellow", "green"]
 
         for value in card_values:
             if value == "wild" or value == "wild_draw4":
-                card = Card(None, value)
+                card = Card("white", value)
+                self.deck.append(card)
                 continue
             for color in card_colors:
                 card = Card(color, value)
@@ -106,6 +106,7 @@ class Game:
         data = data.replace('STRING_DECK', hand)
         data = data.replace('PLAYER_ID', str(self.players[0].name))
         data = data.replace('DATA', str(len(self.players[1].hand)))
+        print('server -> cliente2: ', data)
 
         cliente1.sendall(data.encode())
     
@@ -114,6 +115,7 @@ class Game:
         data = data.replace('STRING_DECK', hand)
         data = data.replace('PLAYER_ID', str(self.players[1].name))
         data = data.replace('DATA', str(len(self.players[0].hand)))
+        print('server -> cliente2: ', data)
 
         cliente2.sendall(data.encode())
 
@@ -123,6 +125,7 @@ class Game:
         data = data.replace('PLAYER_ID', str(self.players[0].name))
         data = data.replace('NEXT_PLAYER', str(self.turn_player.name))
         data = data.replace('DATA', str(len(self.players[1].hand)))
+        print('server -> cliente1: ', data)
 
         cliente1.sendall(data.encode())
     
@@ -131,6 +134,7 @@ class Game:
         data = data.replace('PLAYER_ID', str(self.players[1].name))
         data = data.replace('NEXT_PLAYER', str(self.turn_player.name))
         data = data.replace('DATA', str(len(self.players[0].hand)))
+        print('server -> cliente2: ', data)
 
         cliente2.sendall(data.encode())
 
@@ -147,12 +151,15 @@ class Game:
                     data = data.replace('PLAYER_ID', str(self.players[0].name))
                     data = data.replace('DATA', "Winner")
                     data = data.replace('STATUS', 'Success')
+                    print('server -> cliente1: ', data)
                     cliente1.sendall(data.encode())
+
                     data = 'ATT_CARD | PLAYER_ID |   | PREVIOUS_CARD |   |   | STATUS | DATA |   |  '
                     data.replace('PREVIOUS_CARD', self.previous_card.get_card_str())
                     data = data.replace('PLAYER_ID', str(self.players[1].name))
                     data = data.replace('DATA', "Loser")
                     data = data.replace('STATUS', 'Success')
+                    print('server -> cliente2: ', data)
                     cliente2.sendall(data.encode())
                     self.started = False
                 else:
@@ -161,6 +168,8 @@ class Game:
                     data = data.replace('PLAYER_ID', str(self.players[0].name))
                     data = data.replace('DATA', "Loser")
                     data = data.replace('STATUS', 'Success')
+                    print('server -> cliente1: ', data)
+
                     cliente1.sendall(data.encode())
                     print("Player ", player.name," ganhou!")
                     data = 'ATT_CARD | PLAYER_ID |   | PREVIOUS_CARD |   |   | STATUS | DATA |   |  '
@@ -168,6 +177,7 @@ class Game:
                     data = data.replace('PLAYER_ID', str(self.players[1].name))
                     data = data.replace('DATA', "Winner")
                     data = data.replace('STATUS', 'Success')
+                    print('server -> cliente2: ', data)
                     cliente2.sendall(data.encode())
                     self.started = False
     
@@ -187,10 +197,14 @@ class Player:
 
     def remove_card(self, card):
         #find card in hand, get index and remove
+        print('removendo carta')
+        if card.number == "wild" or card.number == "wild_draw4":
+            card.color = 'white'
 
         for i in range(0, len(self.hand)):
             if self.hand[i].number == card.number and self.hand[i].color == card.color:
                 self.hand.pop(i)
+                print('carta removida')
                 break
 
 
@@ -204,8 +218,6 @@ class Card:
         self.number = value
     
     def get_card_str(self):
-        if self.color == None:
-            return f"{self.number} white"
         return f"{self.number} {self.color}"
     
     def print_card(self):
@@ -302,15 +314,22 @@ def server():
                 if formatted_message[0] == "CARD_PUT":
                     card_to_put = formatted_message[2]
                     card_to_put = card_to_put.split(' ')
-                    card_to_put = Card(card_to_put[0], card_to_put[1])
-                    if(card_to_put.color == game.previous_card.color or card_to_put.number == game.previous_card.number):
+
+                    if(card_to_put[0] == 'wild' or card_to_put[0] == 'wild_draw4'):
+                        color = formatted_message[5]
+                        card_to_put = Card(color, card_to_put[0])
+                    else:
+                        card_to_put = Card(card_to_put[0], card_to_put[1])
+
+                    if(card_to_put.color == game.previous_card.color or card_to_put.number == game.previous_card.number or card_to_put.number == 'wild'):
                         if (game.turn_player == game.players[1]):
                             game.turn_player = game.players[0]
                         else:
                             game.turn_player = game.players[1]
 
                         game.previous_card = card_to_put
-                        game.players[0].remove_card(card_to_put)
+                        card_to_remove = copy.copy(card_to_put)
+                        game.players[0].remove_card(card_to_remove)
 
                         game.check_winner(cliente1, cliente2)
 
@@ -321,6 +340,8 @@ def server():
                         data = data.replace('DATA', str(len(game.players[1].hand)))
                         data = data.replace('STRING_DECK', " ")
                         data = data.replace('STATUS', 'Success')
+                        print('server -> cliente1: ', data)
+
                         cliente1.sendall(data.encode())
 
                         string_deck = ""
@@ -339,7 +360,8 @@ def server():
                         data = data.replace('DATA', str(len(game.players[0].hand)))
                         data = data.replace('STRING_DECK', string_deck)
                         data = data.replace('STATUS', 'Success')
-                        print(data)
+                        print('server -> cliente2:', data)
+                        
                         cliente2.sendall(data.encode())
 
                 elif formatted_message[0] == 'BUY_CARD':
@@ -369,7 +391,7 @@ def server():
                     data = data.replace('PREVIOUS_CARD', game.previous_card.get_card_str())
                     data = data.replace('DATA', str(len(game.players[1].hand)))
                     data = data.replace('SUCCESS', 'Success')
-                    print(data)
+                    print('server -> cliente1: ',data)
                     cliente1.sendall(data.encode())
                     
                     string_deck = 'empty'
@@ -381,7 +403,7 @@ def server():
                     data = data.replace('PREVIOUS_CARD', game.previous_card.get_card_str())
                     data = data.replace('DATA', str(len(game.players[0].hand)))
                     data = data.replace('SUCCESS', 'Success')
-                    print(data)
+                    print('server -> cliente2: ', data)
                     cliente2.sendall(data.encode())
 
             mensagem2 = cliente2.recv(1024).decode()
@@ -393,17 +415,31 @@ def server():
                 if formatted_message[0] == "CARD_PUT":
                     card_to_put = formatted_message[2]
                     card_to_put = card_to_put.split(' ')
-                    card_to_put = Card(card_to_put[0], card_to_put[1])
-                    if(card_to_put.color == game.previous_card.color or card_to_put.number == game.previous_card.number):
+                    print(card_to_put)
+                    if(card_to_put[0] == 'wild' or card_to_put[0] == 'wild_draw4'):
+                        color = formatted_message[5]
+                        print(color)
+                        card_to_put = Card(color, card_to_put[0])
+                    else:
+                        card_to_put = Card(card_to_put[0], card_to_put[1])
+                    if(card_to_put.color == game.previous_card.color or card_to_put.number == game.previous_card.number or card_to_put.number == 'wild'):
                         if (game.turn_player == game.players[1]):
                             game.turn_player = game.players[0]
                         else:
                             game.turn_player = game.players[1]
 
+                        print(card_to_put.get_card_str())
+
+
                         game.previous_card = card_to_put
-                        game.players[1].remove_card(card_to_put)
-                        
+                        print(game.previous_card.get_card_str())
+                    
+                        card_to_remove = copy.copy(card_to_put)
+                        game.players[1].remove_card(card_to_remove)
+                        print(game.previous_card.get_card_str())
+
                         game.check_winner(cliente1, cliente2)
+                        print(game.previous_card.get_card_str())
 
                         string_deck = ""
                         
@@ -421,6 +457,7 @@ def server():
                         data = data.replace('DATA', str(len(game.players[1].hand)))
                         data = data.replace('STRING_DECK', string_deck)
                         data = data.replace('STATUS', 'Success')
+                        print('server -> cliente1: ', data)
                         cliente1.sendall(data.encode())
                         data = 'ATT_CARD | PLAYER_ID |   | PREVIOUS_CARD |   |   | STATUS | DATA |   | NEXT_PLAYER'
                         data = data.replace('PREVIOUS_CARD', game.previous_card.get_card_str())
@@ -429,6 +466,7 @@ def server():
                         data = data.replace('DATA', str(len(game.players[0].hand)))
                         data = data.replace('STRING_DECK', " ")
                         data = data.replace('STATUS', 'Success')
+                        print('server -> cliente2: ', data)
                         cliente2.sendall(data.encode())
 
                 elif formatted_message[0] == 'BUY_CARD':
@@ -459,7 +497,7 @@ def server():
                     data = data.replace('PREVIOUS_CARD', game.previous_card.get_card_str())
                     data = data.replace('DATA', str(len(game.players[1].hand)))
                     data = data.replace('SUCCESS', 'Success')
-                    print(data)
+                    print('server -> cliente1: ', data)
                     cliente1.sendall(data.encode())
 
                     data = 'CARDS_BUYED | PLAYER_ID | PREVIOUS_CARD |   |   |   | STATUS | DATA | STRING_DECK | NEXT_PLAYER'
@@ -471,7 +509,7 @@ def server():
                     data = data.replace('PREVIOUS_CARD', game.previous_card.get_card_str())
                     data = data.replace('DATA', str(len(game.players[0].hand)))
                     data = data.replace('SUCCESS', 'Success')
-                    print(data)
+                    print('server -> cliente2: ', data)
                     cliente2.sendall(data.encode())
 
 
