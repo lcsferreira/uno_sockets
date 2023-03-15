@@ -93,7 +93,7 @@ class Game:
         self.turn_player = self.players[0]
         
         self.previous_card = self.random_card()
-        while self.previous_card.color == None:
+        while self.previous_card.color == "white":
             self.previous_card = self.random_card()
         
         self.started = True
@@ -315,7 +315,7 @@ def server():
                     card_to_put = formatted_message[2]
                     card_to_put = card_to_put.split(' ')
 
-                    if(card_to_put[0] == 'wild' or card_to_put[0] == 'wild_draw4'):
+                    if(card_to_put[0] == 'wild'):
                         color = formatted_message[5]
                         card_to_put = Card(color, card_to_put[0])
                     else:

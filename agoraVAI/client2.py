@@ -137,13 +137,6 @@ def verify_type(data):
                 for card in cards_to_add:
                     card = card.split(' ')
                     player_hand.append(Card(card[1], card[0]))
-            elif player_id == data[9]:
-                print("Você comprou 4 cartas obrigatoriamente!")
-                cards_to_add = data[8]
-                cards_to_add = cards_to_add.split(', ')
-                for card in cards_to_add:
-                    card = card.split(' ')
-                    player_hand.append(Card(card[1], card[0]))
             
             if(data[7] == 'Winner'):
                 print("Parabéns, Você GANHOU o jogo!")
