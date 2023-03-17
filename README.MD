@@ -6,12 +6,27 @@ Este é um projeto em Python para jogar o famoso jogo UNO com dois jogadores usa
 
 - Python 3.x
 - Bibliotecas: socket e termcolor
-  ## Como executar
-- Altere a variável host para corresponder ao IP da máquina que será usada como servidor e a variável port para uma porta disponível.
-- Execute python3 server.py para iniciar o servidor.
-- Cada jogador precisa executar python3 client.py em sua própria máquina.
-- Altere a variável host em client.py para corresponder ao IP do servidor e a variável port para uma porta diferente da do servidor.
-- Conecte-se com outro jogador usando o software Hamachi ou outro método para conectar os IPs das máquinas.
+  ## Comandos para instalação
+  ```sh
+  pip install termcolor
+  ```
+  ```sh
+  pip install socket
+  ```
+
+## Como executar
+
+- Altere a variável _'HOST'_ para corresponder ao IP da máquina que será usada como servidor e a variável _'PORT'_ para uma porta disponível.
+- Execute o comando abaixo para iniciar o servidor.
+  ```sh
+  python3 server.py
+  ```
+- Cada jogador precisa executar o comando abaixo em sua própria máquina.
+  ```sh
+  python3 client.py
+  ```
+- Altere a variável _'HOST'_ em client.py para corresponder ao IP do servidor e a variável _'PORT'_ para uma porta diferente da do servidor.
+- Conecte-se com outro jogador usando o software _Hamachi_ ou outro método para conectar os IPs das máquinas.
 - _Jogue o UNO!_
 
 ## Como jogar
