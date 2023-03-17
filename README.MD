@@ -6,7 +6,7 @@ Este é um projeto em Python para jogar o famoso jogo UNO com dois jogadores usa
 
 - Python 3.x
 - Bibliotecas: socket e termcolor
-  ##Como executar
+  ## Como executar
 - Altere a variável host para corresponder ao IP da máquina que será usada como servidor e a variável port para uma porta disponível.
 - Execute python3 server.py para iniciar o servidor.
 - Cada jogador precisa executar python3 client.py em sua própria máquina.
