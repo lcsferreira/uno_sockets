@@ -1,12 +1,12 @@
-# Projeto UNO Multiplayer
+# UNO Multiplayer Project
 
-Este é um projeto em Python para jogar o famoso jogo UNO com dois jogadores usando a biblioteca sockets para comunicação cliente-servidor. Ele também utiliza a biblioteca termcolor para uma melhor visualização das cartas no terminal.
+This is a Python project for playing the famous UNO game with two players using the sockets library for client-server communication. It also uses the termcolor library for better card visualization in the terminal.
 
-## Requisitos
+## Requirements
 
 - Python 3.x
-- Bibliotecas: socket e termcolor
-  ## Comandos para instalação
+- Libraries: socket and termcolor
+  ## Installation commands
   ```sh
   pip install termcolor
   ```
@@ -14,25 +14,25 @@ Este é um projeto em Python para jogar o famoso jogo UNO com dois jogadores usa
   pip install socket
   ```
 
-## Como executar
+## How to Run
 
-- Altere a variável _'HOST'_ para corresponder ao IP da máquina que será usada como servidor e a variável _'PORT'_ para uma porta disponível.
-- Execute o comando abaixo para iniciar o servidor.
+- Change the variable _'HOST'_ to match the IP of the machine that will be used as the server and the variable _'PORT'_ to an available port.
+- Execute the following command to start the server.
   ```sh
   python3 server.py
   ```
-- Cada jogador precisa executar o comando abaixo em sua própria máquina.
+- Each player needs to execute the following command on their own machine.
   ```sh
   python3 client.py
   ```
-- Altere a variável _'HOST'_ em client.py para corresponder ao IP do servidor e a variável _'PORT'_ para uma porta diferente da do servidor.
-- Conecte-se com outro jogador usando o software _Hamachi_ ou outro método para conectar os IPs das máquinas.
-- _Jogue o UNO!_
+- Change the variable _'HOST'_ in client.py to match the server's IP and the variable _'PORT'_ to a different port than the server's.
+- Connect with another player using the software _Hamachi_ or another method to connect the machines' IPs.
+- _Play UNO!_
 
-## Como jogar
+## How to Play
 
-O jogo UNO é um jogo de cartas em que os jogadores jogam cartas de suas mãos combinando cor ou número com a carta do topo da pilha. Os jogadores também podem jogar cartas de ação que afetam o próximo jogador. O objetivo é ficar sem cartas na mão antes do outro jogador.
+The UNO game is a card game in which players play cards from their hands, matching color or number with the top card on the pile. Players can also play action cards that affect the next player. The goal is to get rid of all the cards in your hand before the other player.
 
-## Agradecimentos
+## Acknowledgments
 
-Este projeto foi inspirado em outros projetos de UNO multiplayer em Python disponíveis no GitHub. Ele foi criado para fins educacionais e de aprendizado. Se você encontrar erros ou tiver sugestões para melhorias, sinta-se à vontade para abrir um problema ou solicitação de pull request no repositório.
+This project was inspired by other UNO multiplayer projects in Python available on GitHub. It was created for educational and learning purposes. If you find any bugs or have suggestions for improvements, feel free to open an issue or pull request on the repository.
